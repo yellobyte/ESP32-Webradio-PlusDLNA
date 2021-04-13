@@ -42,4 +42,4 @@ The following sample picture sequence shows the actual implementation into this 
 
 ![github](https://github.com/yellobyte/SoapESP32/raw/main/doc/ESP32-Radio-DLNA.jpg)
 
-Alternatively have a look at the short clip _ESP32-Radio-DLNA.mp4_ in folder **Doc** to see the final implementation in action. To watch now, click [Here](https://github.com/yellobyte/ESP32-Webradio++/Doc/ESP32-Radio-DLNA.mp4).
+Alternatively have a look at the short clip _ESP32-Radio-DLNA.mp4_ in folder **Doc** to see the final implementation in action. To watch now, click [Here](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/Doc/ESP32-Radio-DLNA.mp4).
