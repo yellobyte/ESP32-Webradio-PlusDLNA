@@ -15,7 +15,7 @@ Starting from Ed's code (Version 10.06.2018) this **ESP32 Webradio++** project h
 
  * Digital audio output added (TOSLINK optical) using a WM8805 module (Aliexpress)
  * Usage of own VS1053 decoder board (with I2S output and w/o 3.5mm audio sockets)<br />
-   -> You find all Eagle schematic & board files [here](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/EagleFiles).
+   -> You find all Eagle schematic & board files [here](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/EagleFiles).
  * VS1053 gets patched with new firmware v2.7 at each reboot<br />
    -> Latest firmware patches for the VLSI VS1053 are available from [here](http://www.vlsi.fi/en/support/software/vs10xxpatches.html).
  * VU meter added on TFT display (needs above mentioned firmware patch)
@@ -42,4 +42,4 @@ The following sample picture sequence shows the actual implementation into this 
 
 ![github](https://github.com/yellobyte/SoapESP32/raw/main/doc/ESP32-Radio-DLNA.jpg)
 
-Alternatively have a look at the short clip _ESP32-Radio-DLNA.mp4_ in folder **Doc** to see the final implementation in action. To watch now, click [Here](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/Doc/ESP32-Radio-DLNA.mp4).
+Alternatively have a look at the short clip _ESP32-Radio-DLNA.mp4_ in folder **Doc** to see the final implementation in action. To watch now, click [Here](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Doc/ESP32-Radio-DLNA.mp4).
