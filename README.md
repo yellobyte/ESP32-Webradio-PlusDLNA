@@ -11,7 +11,7 @@ In this project we read a chunk of such a file into the queue which feeds the au
 
 Using the rotary switch encoder is all it needs to browse through the content of a DLNA media server in the local network. Going up and down the directory levels and finally selecting an audio file for playing can be done very fast.
 
-Starting from Ed's code (Version 10.6.2018) this **ESP32 Webradio++** project has (aside from SoapESP32 lib integration) seen the following additions and modifications:
+Starting from Ed's code (Version 10.06.2018) this **ESP32 Webradio++** project has (aside from SoapESP32 lib integration) seen the following additions and modifications:
 
  * Digital audio output added (TOSLINK optical) using a WM8805 module (Aliexpress)
  * Usage of own VS1053 decoder board (with I2S output and w/o 3.5mm audio sockets)<br />
