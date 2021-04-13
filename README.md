@@ -5,7 +5,7 @@ This ESP32 internet radio implementation is based on Ed Smallenburgs (ed@smallen
 The main reason for putting this project **ESP32 Webradio++** online on github is to show  the implementation of the [**SoapESP32**](https://github.com/yellobyte/SoapESP32) library into my own webradio project, which I have been asked for a few times lately. 
 The second reason is to provide an example of how to give a second life to an old and outdated device you have used for years and are unwilling to part with...
 
-SoapESP32 library enables any ESP32 device to connect to DLNA media servers in the local network, browse their content and then download selected files.  
+SoapESP32 library enables any ESP32 device to connect to DLNA media servers in the local network, browse their content and download selected files.  
 
 In this project we read a chunk of such a file into the queue which feeds the audio codec VS1053B. When the queue accepts another chunk of data we read more from the media server until the song has finished. Then we close the data connection to the server and automatically select the next audio file from the list, provided we are in repeat file/folder mode.  
 
