@@ -1,0 +1,99 @@
+26-04-2017, ES: First set-up, derived from ESP8266 version.
+08-05-2017, ES: Handling of preferences.
+22-05-2017, ES: Save preset, volume and tone settings.
+23-05-2017, ES: No more calls of non-iram functions on interrupts.
+24-05-2017, ES: Support for featherboard.
+26-05-2017, ES: Correction playing from .m3u playlist. Allow single hidden SSID.
+30-05-2017, ES: Add SD card support (FAT format), volume indicator.
+26-06-2017, ES: Correction: start in AP-mode if no WiFi networks configured.
+28-06-2017, ES: Added IR interface.
+30-06-2017, ES: Improved functions for SD card play.
+03-07-2017, ES: Webinterface control page shows current settings.
+08-07-2017, ES: More space for streamtitle on TFT.
+18-07-2017, ES: Time Of Day on TFT.
+19-07-2017, ES: Minor corrections.
+26-07-2017, ES: Flexible pin assignment. Add rotary encoder switch.
+27-07-2017, ES: Removed tinyXML library.
+18-08-2017, Es: Minor corrections
+28-08-2017, ES: Preferences for pins used for SPI bus,
+                Corrected bug in handling programmable pins,
+                Introduced touch pins.
+30-08-2017, ES: Added MDNS responder.
+11-11-2017, ES: Increased ringbuffer.  Measure bit rate.
+13-11-2017, ES: Forward declarations.
+16-11-2017, ES: Replaced ringbuffer by FreeRTOS queue, play function on second CPU,
+                Included improved rotary switch routines supplied by fenyvesi,
+                Better IR sensitivity.
+30-11-2017, ES: Hide passwords in config page.
+01-12-2017, ES: Better handling of playlist.
+07-12-2017, ES: Faster handling of config screen.
+08-12-2017, ES: Added pin_shutdown.
+13-12-2017, ES: Correction clear LCD.
+15-12-2017, ES: Correction defaultprefs.h.
+18-12-2017, ES: Stop playing during config.
+02-01-2018, ES: Stop/resume is same command.
+22-01-2018, ES: Read ADC (GPIO36) and display as a battery capacity percentage.
+13-02-2018, ES: Stop timer during NVS write.
+15-02-2018, ES: Correction writing wifi credentials in NVS.
+03-03-2018, ES: Correction bug IR pinnumber.
+05-03-2018, ES: Improved rotary encoder interface.
+10-03-2018, ES: Minor corrections.
+13-04-2018, ES: Guard against empty string send to TFT, thanks to Andreas Spiess.
+16-04-2018, ES: ID3 tags handling while playing from SD.
+25-04-2018, ES: Choice of several display boards.
+30-04-2018, ES: Bugfix: crash when no IR is configured, no display without VS1063.
+08-05-2018, ES: 1602 LCD display support (limited).
+11-05-2018, ES: Bugfix: incidental crash in isr_enc_turn().
+30-05-2018, ES: Bugfix: Assigned DRAM to global variables used in timer ISR.
+31-05-2018, ES: Bugfix: Crashed if I2C is used, but pins not defined.
+01-06-2018, ES: Run playTask on CPU 0.
+04-06-2018, ES: Made handling of playlistdata more tolerant (NDR).
+09-06-2018, ES: Typo in defaultprefs.h
+10-06-2018, ES: Rotary encoder, interrupts on all 3 signals.
+21-06-2018, TJ: Bugfix in ID3-Tag recognition, new: utf16ascii()
+22-06-2018, TJ: reconnect to same station as first try if station is lost
+25-06-2018, TJ: unused MQTT & battery parts removed
+27-06-2018, TJ: Bugfix in getSDfilename(), repeat-Mode added
+01-07-2018, TJ: Showing directory names on tracklist in web interface
+02-07-2018, TJ: Fast Forward for mp3 files added + misc bug fixes + changes for encoder handling
+07-07-2018, TJ: Bugfixing showStreamTitle(), Changes for TFT Output with different Fonts etc.
+12-07-2018, TJ: Changes in TFT Layout, progress bar, more bug fixing
+15-07-2018, TJ: Ethernet added (per #define changeable between WiFi or Ethernet)
+16-07-2018, TJ: DHCP or static IP addresses configurable via preferences. If rotary button is pressed
+                while rebooting than DHCP will be tried first
+17-07-2018, TJ: NTP server access when Ethernet/LAN is used, getLocalTimeEth()
+22-07-2018, TJ: Completely new design for file listing & indexing
+06-08-2018, TJ: Bugfixing in various functions, changes in mp3loop
+25-08-2018, TJ: Completely different Encoder handling (spikes are now suppressed by hardware)
+27-08-2018, TJ: Connecting to Port Extender ICs PCF8574 via I2C
+28-08-2018, TJ: Handling of original TECHNICS ST-G570 front panel buttons & LEDs
+06-09-2018, TJ: ESP32-I2C system doesn't work stable. We generate our own I2C code. Quick & dirty.
+07-09-2018, TJ: Changing front panel behaviour heavily
+26-09-2018, TJ: Bug fixing, changings in defaultprefs.h
+08-10-2018, TJ: Changes for displaying Radio stations
+16-10-2018, TJ: I2C software changed (we use low level I2C functions now, i2c_xxx [provided by espressif])
+30-11-2018, TJ: In case no station name gets send we use preset name (if it exists)
+01-12-2018, TJ: Show selected station names instantaneously when skip/preset buttons pressed
+02-12-2018, TJ: getTime() & mp3loop() optimized, defaultprefs.h modified
+03-12-2018, TJ: playing iRadio stations optimized, bugfixing
+29-01-2019, TJ: MP3 progress bar with finer granularity
+09-02-2019, TJ: Debug Output on Port 23 added (if PORT23_ACTIVE defined)
+11-02-2019, TJ: We use standard Arduino Ethernet Library V2.0.0 instead of Wiznet Library
+06-03-2019, TJ: SD_MAXDEPTH increased, Error message improved for swapped SD cards, 
+                System Volume Directories suppressed in SD track list
+15-05-2019, TJ: Re-Init W5500 ethernet card if connection to server is lost
+16-05-2019, TJ: Removed mp3client.flush() from stopMp3client(): it hangs quite often !
+08-09-2019, TJ: Show more chars in bottom segment when in radio mode (incl. conversion of spec. chars)
+12-09-2019, TJ: quickSdCheck() for better handling of removed/re-inserted SD-cards
+20-09-2019, TJ: File selection process from SD card slightly changed
+08-10-2019, TJ: SD-Card is not scanned after switching on, only if user presses SD button.
+                This speeds up the boot process.
+11-10-2019, TJ: I2S Interface turned on (for new VS1053B decoder board & optical digital output),
+                VS1053B patch V2.7 is loaded into VS1053B chip at every system boot and Bits 8 & 0 in
+                register SCI_STATUS are set, this activates a higher reference voltage
+19-10-2019, TJ: The VS1053 patch introduces a VU-Meter function. We use it in the new task "vumeterTask". 
+18-04-2020, TJ: Switching from SD- to Station-Mode selects the actual station preset and not the first station
+19-04-2020, TJ: Introduced Update via SD-Card (File "firmware.bin" must be in root directory)
+28-11-2020, TJ: Update for VU-Meter, adjust VU meter for changing levels: radio/sdcard produce different output levels & dynamic
+01-12-2020, TJ: utf8ascii modified
+02-01-2020, TJ: integration of SoapESP32 for playing files from DLNA media server
