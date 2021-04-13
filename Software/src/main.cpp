@@ -1,15 +1,15 @@
 //*******************************************************************************************************
-//*  ESP32 Webradio receiver + DLNA audio client                                                        *
+//*  ESP32 Webradio++                                                                                   *
 //*                                                                                                     *
 //*  For ESP32, 1.8 color display, VS1053 decoder module, Ethernet module and Optical digital audio     *
-//*  output in a original Technics ST-G570 Tuner case.                                                  *
+//*  output in an original Technics ST-G570 Radio Tuner case.                                           *
 //*                                                                                                     *
-//*  Based on Ed Smallenburgs (ed@smallenburg.nl) original ESP32 Radio project, version 10.6.2018.      * 
-//*  His popular project is documented at https://github.com/Edzelf/ESP32-radio.                  *
+//*  Based on Ed Smallenburgs (ed@smallenburg.nl) original ESP32 Radio project, version 10.06.2018.     * 
+//*  His popular project is documented at https://github.com/Edzelf/ESP32-radio.                        *
 //*                                                                                                     *
-//*  Starting from his code (Version 10.6.2018) this project has seen the following changes and         *
-//*  modifications:                                                                                     *
-//*   - DLNA client functionality added (utilizing SoapESP32 library)                                   *
+//*  Starting from Ed's code (Version 10.06.2018) this project has seen a lot of additions and          *
+//*  modifications over time. Here a summary:                                                           *
+//*   - DLNA/SOAP functionality added (utilizing SoapESP32 library)                                     *
 //*   - Digital audio output added (TOSLINK optical) using a WM8805 module (China)                      *
 //*   - Usage of own VS1053 decoder board (similar to China board but with I2S output and w/o sockets)  *
 //*   - VS1053 gets patched with new firmware v2.7 at each reboot                                       *
