@@ -87,7 +87,7 @@
 //
 
 // Define the version number, also used for webserver as Last-Modified header:
-#define VERSION "01 Feb 2021 18:49"
+#define VERSION "06 Oct 2021 23:43"
 //
 // Please define in platform.ini as it affects soapESP32 too !!!!
 //#define USE_ETHERNET                   // Use Ethernet/LAN instead of WiFi builtin
@@ -145,7 +145,7 @@ byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEE};
 #include "SoapESP32.h"
 #endif
 
-// auskommentieren wenn man ESP_EARLY_LOGx nicht benötigt
+// comment out if ESP_EARLY_LOGx not needed
 //#define LOG_LOCAL_LEVEL ESP_LOG_DEBUG
 //#include "esp_log.h"
 //DRAM_ATTR static const char* TAG = "ESP32Radio";
@@ -373,7 +373,7 @@ int               numSsid;                               // Number of available 
 ini_struct        ini_block;                             // Holds configurable data
 #ifndef USE_ETHERNET
 WiFiMulti         wifiMulti;                             // Possible WiFi networks
-#ifdef ENABLE_CMDSERVER
+#ifdef ENABLE_CMDSERVER && !defined(PORT23_ACTIVE)
 WiFiServer        cmdserver(80);                         // Instance of embedded webserver, port 80
 WiFiClient        cmdclient;                             // An instance of the client for commands
 #endif
@@ -1948,7 +1948,7 @@ void listNetworks()
 void IRAM_ATTR timer10sec()
 {
   static uint32_t oldtotalCount = 7321;          // needed for change detection
-  static uint16_t morethanonce = 0;              // counter for succesive fails
+  static uint16_t morethanonce = 0;              // counter for successive fails
   uint32_t bytesplayed;                          // bytes send to MP3 converter
 
   if (dataMode & (INIT | HEADER | DATA |         // test if playing
@@ -1970,6 +1970,7 @@ void IRAM_ATTR timer10sec()
                       PLAYLISTHEADER)) {
         playlist_num = 0;                        // yes, end of playlist
       }
+      goto error_handling;
     }
     else {
       //                                         // data has been sent to MP3 decoder
@@ -1982,6 +1983,7 @@ void IRAM_ATTR timer10sec()
     }
   }
   else if (dataMode & CONNECTERROR) {
+error_handling:    
     if (((morethanonce > 5) && (morethanonce < 10)) ||  // happened more than 5x?
           (playlist_num > 0)) {                 // or playlist active?
       dataMode = STOPREQD;                      // stop player
