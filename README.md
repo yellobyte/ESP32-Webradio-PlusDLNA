@@ -11,11 +11,11 @@ Using a rotary switch encoder is all it needs to browse through the content of a
 
 In this project, after selecting a file from the list returned by *browseServer()*, we send a read request to the media server using *readStart()* and if granted, *read()* a chunk of data into the queue which feeds the audio codec VS1053B. When the queue accepts another chunk of data we *read()* more from the media server until end of file. Then we close the data connection to the server with *readStop()* and automatically select the next audio file from the browse list, provided we are in repeat file/folder mode.  
 
-## Feature list ##
+## :gift: Feature list ##
 
 Starting from Ed's code (Version 10.06.2018) this **ESP32 Webradio++** project has seen a lot of additions and modifications over time. Here a summary:
 
- * integration of SoapESP32 library
+ * integration of [SoapESP32](https://github.com/yellobyte/SoapESP32) library
  * Digital audio output added (TOSLINK optical) using a WM8805 module (Aliexpress)
  * Usage of own VS1053 decoder board (with I2S output and w/o 3.5mm audio sockets)<br />
    -> You find the Eagle schematic & board files [here](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/EagleFiles).
@@ -39,10 +39,14 @@ If interested, have a look at "Revision history.txt" in the doc folder.
 
  * Enable the Webinterface to browse DLNA media servers and select files
 
-## Implementation of SoapESP32 library ##
+## :tada: Implementation of SoapESP32 library ##
 
 The following sample picture sequence shows the actual implementation into this webradio project:
 
 ![github](https://github.com/yellobyte/SoapESP32/raw/main/doc/ESP32-Radio-DLNA.jpg)
 
 Alternatively have a look at the short clip _ESP32-Radio-DLNA.mp4_ in folder **Doc** to see the final implementation in action. To watch now, click [Here](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Doc/ESP32-Radio-DLNA.mp4).
+
+## :clap:  Supporters
+
+[![Stargazers repo roster for @yellobyte/ESP32-Webradio-PlusDLNA](https://reporoster.com/stars/yellobyte/ESP32-Webradio-PlusDLNA)](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/stargazers)  
