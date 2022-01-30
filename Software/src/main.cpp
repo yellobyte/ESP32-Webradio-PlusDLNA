@@ -87,7 +87,7 @@
 //
 
 // Define the version number, also used for webserver as Last-Modified header:
-#define VERSION "06 Oct 2021 23:43"
+#define VERSION "28 Oct 2021 00:40"
 //
 // Please define in platform.ini as it affects soapESP32 too !!!!
 //#define USE_ETHERNET                   // Use Ethernet/LAN instead of WiFi builtin
@@ -1277,13 +1277,13 @@ byte utf8ascii(byte ascii)
   else if ((c1 != 0xC3) && (ascii == 0x81 || ascii == 0xFC)) {
     c1 = 0;  res = 'u';              // ü
   }
-  else if ((c1 != 0xC3) && (ascii == 0x8E)) {
+  else if ((c1 != 0xC3) && (ascii == 0x8E || ascii == 0xC4)) {
     c1 = 0;  res = 'A';              // Ä
   }
   else if ((c1 != 0xC3) && (ascii == 0x99 || ascii == 0xD6)) {
     c1 = 0;  res = 'O';              // Ö
   }
-  else if ((c1 != 0xC3) && (ascii == 0x9A)) {
+  else if ((c1 != 0xC3) && (ascii == 0x9A || ascii == 0xDC)) {
     c1 = 0;  res = 'U';              // Ü
   }
   else if ((c1 != 0xC3) && (ascii == 0xB4)) {
