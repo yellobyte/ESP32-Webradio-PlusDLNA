@@ -46,8 +46,6 @@ Always make sure you have one of the latest versions of **Arduino core for ESP32
 
 If you want to use a Wiznet W5500 Ethernet card/shield and build with options `ENABLE_CMDSERVER` or `PORT23_ACTIVE` then you will get a build error like this:  
 ```
-....
-Archiving .pio\build\esp32dev\libd3d\libSoapESP32.a
 src\main.cpp:394:19: error: cannot declare variable 'cmdserver' to be of abstract type 'EthernetServer'
  EthernetServer    cmdserver(80);                         // Instance of embedded webserver, port 80
 ```
