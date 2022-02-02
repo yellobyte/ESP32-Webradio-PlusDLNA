@@ -35,7 +35,47 @@ Starting from Ed's code (Version 10.06.2018) this **ESP32 Webradio++** project h
 
 If interested, have a look at "Revision history.txt" in the doc folder. 
 
-### Still to be done (just an idea):
+## :zap: Application notes
+
+To install needed libraries (Ethernet, SoapESP32, etc.) do the following:
+
+- **VSCode/PlatformIO**: Click the **platformio sidebar icon**, open the **libraries** view and search for libs. Once found, select the newest release and click on **Add to Project**.
+- **Arduino IDE**: Use the **Library Manager** (available from IDE version 1.6.2). Open the IDE and click to the **Sketch** menu and then **Include Library > Manage Libraries**. Search for libs, select the newest release and click on **install**.  
+
+Always make sure you have one of the latest versions of **Arduino core for ESP32** installed in your IDE. Older versions might produce build errors.
+
+If you want to use a Wiznet W5500 Ethernet card/shield and build with options `ENABLE_CMDSERVER` or `PORT23_ACTIVE` then you will get a build error like this:  
+```
+....
+Archiving .pio\build\esp32dev\libd3d\libSoapESP32.a
+src\main.cpp:394:19: error: cannot declare variable 'cmdserver' to be of abstract type 'EthernetServer'
+ EthernetServer    cmdserver(80);                         // Instance of embedded webserver, port 80
+```
+In this case you need to modify by hand two files in the Ethernet lib:  
+- In _Ethernet.h_ add one line as shown below:  
+```
+class EthernetServer : public Server {
+private:
+	uint16_t _port;
+public:
+	EthernetServer(uint16_t port) : _port(port) { }
+	EthernetClient available();
+	EthernetClient accept();
+	virtual void begin();
+	// added for ESP32-Webradio++
+	virtual void begin(uint16_t port);
+  ...
+```
+- In _EthernetServer.cpp_ add the following function definition:
+```
+void EthernetServer::begin(uint16_t port)
+{
+	_port = port;
+	begin();
+}
+```
+
+## Still to be done (just an idea):
 
  * Enable the Webinterface to browse DLNA media servers and select files
 
