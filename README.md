@@ -2,14 +2,11 @@
 
 This ESP32 internet radio implementation is based on Ed Smallenburgs (ed@smallenburg.nl) original ESP32 Radio project, version 10.06.2018. His still active project is documented at https://github.com/Edzelf/ESP32-radio.
 
-My main reason for making this project **ESP32 Webradio++** public on github is to show  the implementation of the [**SoapESP32**](https://github.com/yellobyte/SoapESP32) library into my own webradio project, which I have been asked for a few times lately. 
-The second reason is to provide an example of how to give a second life to an old and outdated device you have used for years and are really unwilling to part with...
-
-SoapESP32 library enables any ESP32 device to connect to DLNA media servers in the local network, browse their content and download selected files.  
+This implementation can not only play internet radio streams and audio files from SD cards. It can also play audio content from DLNA media servers in the same LAN. The [**SoapESP32**](https://github.com/yellobyte/SoapESP32) library enables it to connect to DLNA media servers in the local network, browse their content and download selected files.  
 
 Using a rotary switch encoder is all it needs to browse through the content of a DLNA media server in the local network. Going up and down the directory levels and finally selecting an audio file for playing can be done very fast.
 
-In this project, after selecting a file from the list returned by *browseServer()*, we send a read request to the media server using *readStart()* and if granted, *read()* a chunk of data into the queue which feeds the audio codec VS1053B. When the queue accepts another chunk of data we *read()* more from the media server until end of file. Then we close the data connection to the server with *readStop()* and automatically select the next audio file from the browse list, provided we are in repeat file/folder mode.  
+After selecting a file from the list returned by *browseServer()*, we send a read request to the media server using *readStart()* and if granted, *read()* a chunk of data into the queue which feeds the audio codec VS1053B. When the queue accepts another chunk of data we *read()* more from the media server until end of file. Then we close the data connection to the server with *readStop()* and automatically select the next audio file from the browse list, provided we are in repeat file/folder mode.  
 
 ## :gift: Feature list ##
 
