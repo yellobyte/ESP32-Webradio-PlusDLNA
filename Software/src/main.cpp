@@ -87,14 +87,14 @@
 //
 
 // Define the version number, also used for webserver as Last-Modified header:
-#define VERSION "28 Oct 2021 00:40"
+#define VERSION "16 May 2022 12:42"
 //
 // Please define in platform.ini as it affects soapESP32 too !!!!
 //#define USE_ETHERNET                   // Use Ethernet/LAN instead of WiFi builtin
 // 
 
 #define ENABLE_CMDSERVER               // Enable port 80 web server (Control Website)
-#define ENABLE_SOAP                    // Enable SOAP/DLNA access to media server
+//#define ENABLE_SOAP                    // Enable SOAP/DLNA access to media server
 //#define ENABLE_INFRARED                // Enable remote control functionality per IR
 //#define ENABLE_DIGITAL_INPUTS          // If we want to use digital inputs to start actions/commands
 //#define PORT23_ACTIVE                  // Configure Server on port 23 for sending debug messages
@@ -103,6 +103,7 @@
 #define LOAD_VS1053_PATCH              // Loads a patch into the VS1053 which fixes the SS_REFERENCE_SEL bug
 #define VU_METER                       // Displays VU-Meter levels provided by VS1053B
 #define SD_UPDATES                     // SW-Updates via SD-Card during power-up
+#define ENABLE_ESP32_HW_WDT            // Enable ESP32 Hardware Watchdog
 
 #include <Arduino.h>
 #include <nvs.h>
@@ -127,7 +128,9 @@
 #include <time.h>
 #include <freertos/queue.h>
 #include <freertos/task.h>
+#ifdef ENABLE_ESP32_HW_WDT
 #include <esp_task_wdt.h>
+#endif
 #include <esp_partition.h>
 #include "driver/i2c.h"
 
@@ -150,6 +153,8 @@ byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEE};
 //#include "esp_log.h"
 //DRAM_ATTR static const char* TAG = "ESP32Radio";
 
+// ESP32 hardware watchdog timeout
+#define WDT_TIMEOUT 60
 // Number of entries in the queue
 #define QSIZ 1000
 // Debug buffer size
@@ -1416,6 +1421,7 @@ char* dbgprint(const char* format, ...)
   return sbuf;                                         // Return stored string
 }
 
+#ifdef ENABLE_SOAP
 //**************************************************************************************************
 //                           N E X T S O A P F I L E I N D E X                                     *
 //**************************************************************************************************
@@ -1474,6 +1480,7 @@ int16_t nextSoapFileIndex(int16_t inx, int16_t delta)
            soapList.size(), inx, delta, ret);
   return ret;                                      // Return new index
 }
+#endif
 
 //**************************************************************************************************
 //                           N O S U B D I R I N S A M E D I R                                     *
@@ -1938,14 +1945,14 @@ void listNetworks()
 #endif  // USE_ETHERNET
 
 //**************************************************************************************************
-//                                          T I M E R 1 0 S E C                                    *
+//                                          T I M E R 5 S E C                                      *
 //**************************************************************************************************
-// Extra watchdog.  Called every 10 seconds.                                                       *
+// Extra watchdog.  Called every 5 seconds.                                                        *
 // If totalCount has not been changed, there is a problem and playing will stop.                   *
 // Note that calling timely procedures within this routine or in called functions will             *
 // cause a crash!                                                                                  *
 //**************************************************************************************************
-void IRAM_ATTR timer10sec()
+void IRAM_ATTR timer5sec()
 {
   static uint32_t oldtotalCount = 7321;          // needed for change detection
   static uint16_t morethanonce = 0;              // counter for successive fails
@@ -1959,9 +1966,11 @@ void IRAM_ATTR timer10sec()
       mbitrate = 0;
       return;
     }
-    bytesplayed = totalCount - oldtotalCount;    // number of bytes played in the 10 seconds
+    bytesplayed = totalCount - oldtotalCount;    // number of bytes played in the last 5 seconds
     oldtotalCount = totalCount;                  // save for comparison in next cycle
-    if (bytesplayed < 10000) {                   // still properly playing?
+    // for 10sec
+    //if (bytesplayed < 10000) {                   // still properly playing?
+    if (bytesplayed < 5000) {                   // still properly playing?
       //if (morethanonce > 10) {                 // happened too many times?
       //  ESP.restart();                           // reset the CPU
       //}
@@ -1974,8 +1983,9 @@ void IRAM_ATTR timer10sec()
     }
     else {
       //                                         // data has been sent to MP3 decoder
-      // Bitrate in kbits/s is bytesplayed / 10 / 1000 * 8
-      mbitrate = (bytesplayed + 625) / 1250;     // measured bitrate
+      // Bitrate in kbits/s is bytesplayed / sec / 1000 * 8
+      //mbitrate = (bytesplayed + 625) / 1250;     // measured bitrate (10s)
+      mbitrate = (bytesplayed + 312) / 625;      // measured bitrate (5s)
       morethanonce = 0;                          // data seen, reset failcounter
 #ifdef USE_ETHERNET
       reInitEthernet = false;
@@ -2011,15 +2021,15 @@ error_handling:
 //**************************************************************************************************
 void IRAM_ATTR timer100()
 {
-  sv int16_t count10sec = 0;                     // Counter for activating 10 seconds process
+  sv int16_t count5sec = 0;                      // Counter for activating 5 seconds process
   sv int16_t eqcount = 0;                        // Counter for equal number of clicks
   sv int16_t oldclickcount = 0;                  // To detect difference
 
-  if (++count10sec == 100 ) {                    // 10 seconds passed?
-    timer10sec();                                // Yes, do 10 second procedure
-    count10sec = 0;                              // Reset count
+  if (++count5sec == 100 ) {                     // 5 seconds passed?
+    timer5sec();                                 // Yes, do 5 second procedure
+    count5sec = 0;                               // Reset count
   }
-  if ((count10sec % 10) == 0) {                  // One second over?
+  if ((count5sec % 10) == 0) {                   // One second over?
     if (++timeinfo.tm_sec >= 60) {               // Yes, update number of seconds
       timeinfo.tm_sec = 0;                       // Wrap after 60 seconds
       time_req = true;                           // Yes, show current time request
@@ -2529,6 +2539,7 @@ bool handleID3 (String& path)
       }
     }
   }
+#ifdef ENABLE_SOAP  
   else {
     // no need to scan for ID3 tags, we get it from mediaserver
     if (soapList[currentIndex].artist.length()) {            // artist can be missing
@@ -2543,6 +2554,7 @@ bool handleID3 (String& path)
       dbgprint("SOAP TALB = %s", soapList[currentIndex].album.c_str());
     }
   }
+#endif  
   if (artttl.length()) lastArtistSong = artttl;
   if (encoderMode != SELECT) {                             // Don't disturb selecting SD tracks
     tftset(1, lastArtistSong);                               // Show artist and title
@@ -3778,6 +3790,11 @@ void setup()
     NULL,                                                // parameter of the task
     1,                                                   // priority of the task
     &xvumeterTask);                                      // Task handle to keep track of created task
+#ifdef ENABLE_ESP32_HW_WDT
+  esp_task_wdt_init(WDT_TIMEOUT, true);                 // enable panic so ESP32 restarts
+  esp_task_wdt_add(NULL);                               // add current thread to WDT watch  
+  esp_task_wdt_reset();
+#endif    
 }
 
 #if defined(ENABLE_CMDSERVER) && !defined(PORT23_ACTIVE)
@@ -4482,7 +4499,8 @@ void checkEncoderAndButtons()
     dsp_setTextColor(RED);                                // Info in red
     dsp_setCursor(12, 55);                                // Middle of screen
     dsp_print("SW-Reboot !");
-    delay(3000);                                          // Pause for a short time
+    dataMode = STOPREQD;                                  // stop player
+    delay(1800);                                          // Pause for a short time
     ESP.restart();                                        // Reset the CPU, no return
   }
   if (doubleClick) {                                      // Double click switches between Station/SD/DLNA modes
@@ -4501,8 +4519,10 @@ void checkEncoderAndButtons()
   if (buttonSD) {                                           // Handle button requesting SD mode
     dbgprint("SD mode requested");
     buttonSD = false;
+#ifdef ENABLE_SOAP    
     soapList.clear();                                       // Free memory space
     soapChain.clear();
+#endif    
     if (ini_block.sd_cs_pin < 0) {                          // no SD configured ?
       return;
     }
@@ -5018,6 +5038,7 @@ void mp3loop()
   uint32_t        av = 0;                               // Available in stream
   int             fileIndex;                            // Next file index of track on SD
   uint32_t        qspace;                               // Free space in data queue
+  uint32_t        i;
 
   if (dataMode == STOPREQD) {                           // STOP requested?
     dbgprint("mp3loop: STOP requested");
@@ -5032,11 +5053,13 @@ void mp3loop()
     else if (currentSource == STATION) {
       stopMp3client();                                  // Disconnect if still connected
     }
+#ifdef ENABLE_SOAP    
     else { // MEDIASERVER
       soap.readStop();
       mp3fileLength = mp3fileBytesLeft = 0;
       dbgprint("mp3loop: media server data connection closed");
     }
+#endif    
     chunked = false;                                    // Not longer chunked
     datacount = 0;                                      // Reset datacount
     outqp = outchunk.buf;                               // and pointer
@@ -5152,6 +5175,7 @@ void mp3loop()
         }
       }
     }
+#ifdef ENABLE_SOAP    
     else { // MEDIASERVER
       if (mp3fileJumpForward) {
         mp3fileJumpForward = false;
@@ -5199,7 +5223,8 @@ void mp3loop()
         }
       }
     }
-    for (int i = 0; i < res; i++) {
+#endif    
+    for (i = 0; i < res; i++) {
       handlebyte_ch(tmpbuff[i]);                           // Handle one byte
     }
   }
@@ -5230,6 +5255,7 @@ void mp3loop()
       }
     }
   }
+#ifdef ENABLE_SOAP  
   else if (currentSource == MEDIASERVER) {
     if (dataMode & DATA && av == 0) {                      // playing and end of mp3 data? 
       dbgprint("mp3loop: STOP (end of file from media server)");
@@ -5292,6 +5318,7 @@ void mp3loop()
       }
     }
   }
+#endif  
   if (ini_block.newpreset != currentPreset) {              // new station or next from playlist requested?
     dbgprint("mp3loop: ini_block.newpreset[%d] != currentPreset[%d]",
                ini_block.newpreset, currentPreset);
@@ -5380,9 +5407,15 @@ void mp3loop()
           ini_block.newpreset = 0;
       }
     }
+#ifdef ENABLE_SOAP    
     else { // MEDIASERVER
-      if (!soap.readStart(&hostObject, &mp3fileLength)) {   // media server file
-        // error retrieving file from media server
+      #define MAX_DLNA_RETRIES 3
+      for (i = 0; i < MAX_DLNA_RETRIES; i++) {
+        if (soap.readStart(&hostObject, &mp3fileLength)) break;  // request media server file
+        delay(200);
+      }
+      if (i == MAX_DLNA_RETRIES) {
+        // error requesting file from media server
         dataMode = STOPPED;
         currentSource = NONE;
         host = "";
@@ -5409,6 +5442,7 @@ void mp3loop()
         }
       }
     }
+#endif
   }
 }
 
@@ -5530,6 +5564,9 @@ void handleClientOnPort23()
 void loop()
 {
   //delay(1);                                             // resets task switcher watchdog, just in case it's needed
+#ifdef ENABLE_ESP32_HW_WDT
+  esp_task_wdt_reset();                                 // avoid panic and subsequent ESP32 restart
+#endif   
 #ifdef CHECK_LOOP_TIME
   uint32_t timing;                                      // for calculation of loop() round times
   timing = millis();
@@ -6812,15 +6849,20 @@ void displayTime(const char* str, uint16_t color)
 //                                     L I M I T S T R I N G                                       *
 //**************************************************************************************************
 // Reduce string to a length that will fit into num lines on the screen. The calculation considers *
-// the actual font size.                                                                           *
+// the actual font size. Num will only be 2 or 4 in reality.                                       *
 //**************************************************************************************************
 String limitString(String &strg, int num) {
-  int16_t  x = 0, y = 0;
+  int16_t  x = 0, y = 0, limit = 32;
   uint16_t w = 0, h = 0;
 
-  if (strg.length() > 43)                          // rudimentary line limiting
+  if (num <= 2 && strg.length() > 43) {            // rudimentary line limiting to save time
     strg = strg.substring(0, 43);                  // strg.setCharAt(i,'\0') doesn't change length() !!
-  while (strg.length() > 32) {
+  }
+  else if (num <= 4 && strg.length() > 86) {
+    strg = strg.substring(0, 86);
+    limit = 64;
+  }
+  while (strg.length() > limit) {
     dsp_getTextBounds(strg, 0, 0, &x, &y, &w, &h);
     if (h < ((num + 1) * abs(y))) break;           // it fits into num lines on the display
     strg = strg.substring(0, strg.length() - 1);   // cut 1 byte off at the end
@@ -6883,7 +6925,10 @@ void displayinfo(uint16_t inx)
           dsp_print(buf);                               // Show the string on TFT
         }
         else {                                          // just one line
-          p->str.toCharArray(buf, len);                 // Make a local copy of the string
+          // got to fit into 4 lines on display
+          strg = p->str;
+          strg = limitString(strg, 4);                  // make sure it fits into 4 lines on the display
+          strg.toCharArray(buf, len);                   // Make a local copy of the string
           utf8ascii(buf);                               // Convert possible UTF8
           dsp_print(buf);                               // Show the string on TFT
         }
