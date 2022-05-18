@@ -87,14 +87,14 @@
 //
 
 // Define the version number, also used for webserver as Last-Modified header:
-#define VERSION "16 May 2022 12:42"
+#define VERSION "18 May 2022 23:55"
 //
 // Please define in platform.ini as it affects soapESP32 too !!!!
 //#define USE_ETHERNET                   // Use Ethernet/LAN instead of WiFi builtin
 // 
 
 #define ENABLE_CMDSERVER               // Enable port 80 web server (Control Website)
-//#define ENABLE_SOAP                    // Enable SOAP/DLNA access to media server
+#define ENABLE_SOAP                    // Enable SOAP/DLNA access to media server
 //#define ENABLE_INFRARED                // Enable remote control functionality per IR
 //#define ENABLE_DIGITAL_INPUTS          // If we want to use digital inputs to start actions/commands
 //#define PORT23_ACTIVE                  // Configure Server on port 23 for sending debug messages
@@ -378,7 +378,7 @@ int               numSsid;                               // Number of available 
 ini_struct        ini_block;                             // Holds configurable data
 #ifndef USE_ETHERNET
 WiFiMulti         wifiMulti;                             // Possible WiFi networks
-#ifdef ENABLE_CMDSERVER && !defined(PORT23_ACTIVE)
+#if defined(ENABLE_CMDSERVER) && !defined(PORT23_ACTIVE)
 WiFiServer        cmdserver(80);                         // Instance of embedded webserver, port 80
 WiFiClient        cmdclient;                             // An instance of the client for commands
 #endif

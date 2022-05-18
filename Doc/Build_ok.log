@@ -1,0 +1,156 @@
+Processing esp32dev (platform: espressif32; board: esp32dev; framework: arduino)
+---------------------------------------------------------------------------------------------------------------------------------------
+Verbose mode can be enabled via `-v, --verbose` option
+CONFIGURATION: https://docs.platformio.org/page/boards/espressif32/esp32dev.html
+PLATFORM: Espressif 32 (4.2.0) > Espressif ESP32 Dev Module
+HARDWARE: ESP32 240MHz, 320KB RAM, 4MB Flash
+DEBUG: Current (cmsis-dap) External (cmsis-dap, esp-prog, iot-bus-jtag, jlink, minimodule, olimex-arm-usb-ocd, olimex-arm-usb-ocd-h, olimex-arm-usb-tiny-h, olimex-jtag-tiny, tumpa)
+PACKAGES:
+ - framework-arduinoespressif32 @ 3.20002.220503 (2.0.2)
+ - tool-esptoolpy @ 1.30300.0 (3.3.0)
+ - toolchain-xtensa-esp32 @ 8.4.0+2021r2-patch3
+LDF: Library Dependency Finder -> https://bit.ly/configure-pio-ldf
+LDF Modes: Finder ~ chain+, Compatibility ~ soft
+Found 61 compatible libraries
+Scanning dependencies...
+Dependency Graph
+|-- SD @ 2.0.0
+|   |-- FS @ 2.0.0
+|   |-- SPI @ 2.0.0
+|-- Wire @ 2.0.0
+|-- Adafruit BusIO @ 1.11.6
+|   |-- Wire @ 2.0.0
+|   |-- SPI @ 2.0.0
+|-- SoapESP32 @ 1.1.3
+|   |-- Ethernet @ 2.0.0
+|   |   |-- SPI @ 2.0.0
+|-- FS @ 2.0.0
+|-- SPI @ 2.0.0
+|-- Update @ 2.0.0
+|-- WiFi @ 2.0.0
+|-- Ethernet @ 2.0.0
+|   |-- SPI @ 2.0.0
+|-- Adafruit ST7735 and ST7789 Library @ 1.9.3
+|   |-- Adafruit GFX Library @ 1.11.1
+|   |   |-- SPI @ 2.0.0
+|   |   |-- Adafruit BusIO @ 1.11.6
+|   |   |   |-- Wire @ 2.0.0
+|   |   |   |-- SPI @ 2.0.0
+|   |   |-- Wire @ 2.0.0
+|   |-- SPI @ 2.0.0
+|-- Adafruit GFX Library @ 1.11.1
+|   |-- SPI @ 2.0.0
+|   |-- Adafruit BusIO @ 1.11.6
+|   |   |-- Wire @ 2.0.0
+|   |   |-- SPI @ 2.0.0
+|   |-- Wire @ 2.0.0
+Building in release mode
+Compiling .pio\build\esp32dev\src\main.cpp.o
+Generating partitions .pio\build\esp32dev\partitions.bin
+Compiling .pio\build\esp32dev\libf4f\FS\FS.cpp.o
+Compiling .pio\build\esp32dev\libf4f\FS\vfs_api.cpp.o
+Compiling .pio\build\esp32dev\libc43\SPI\SPI.cpp.o
+Compiling .pio\build\esp32dev\lib042\SD\SD.cpp.o
+Compiling .pio\build\esp32dev\lib042\SD\sd_diskio.cpp.o
+Compiling .pio\build\esp32dev\lib042\SD\sd_diskio_crc.c.o
+Archiving .pio\build\esp32dev\libc43\libSPI.a
+Compiling .pio\build\esp32dev\lib096\Wire\Wire.cpp.o
+Compiling .pio\build\esp32dev\libc42\Adafruit BusIO\Adafruit_BusIO_Register.cpp.o
+Compiling .pio\build\esp32dev\libc42\Adafruit BusIO\Adafruit_I2CDevice.cpp.o
+Compiling .pio\build\esp32dev\libc42\Adafruit BusIO\Adafruit_SPIDevice.cpp.o
+Archiving .pio\build\esp32dev\libf4f\libFS.a
+Compiling .pio\build\esp32dev\lib207\Ethernet\Dhcp.cpp.o
+Archiving .pio\build\esp32dev\lib096\libWire.a
+Archiving .pio\build\esp32dev\lib042\libSD.a
+Compiling .pio\build\esp32dev\lib207\Ethernet\Dns.cpp.o
+Compiling .pio\build\esp32dev\lib207\Ethernet\Ethernet.cpp.o
+Compiling .pio\build\esp32dev\lib207\Ethernet\EthernetClient.cpp.o
+Compiling .pio\build\esp32dev\lib207\Ethernet\EthernetServer.cpp.o
+Compiling .pio\build\esp32dev\lib207\Ethernet\EthernetUdp.cpp.o
+Archiving .pio\build\esp32dev\libc42\libAdafruit BusIO.a
+Compiling .pio\build\esp32dev\lib207\Ethernet\socket.cpp.o
+Compiling .pio\build\esp32dev\lib207\Ethernet\utility\w5100.cpp.o
+Compiling .pio\build\esp32dev\lib12e\SoapESP32\MiniXPath.cpp.o
+Compiling .pio\build\esp32dev\lib12e\SoapESP32\SoapESP32.cpp.o
+Compiling .pio\build\esp32dev\lib77c\Update\HttpsOTAUpdate.cpp.o
+Compiling .pio\build\esp32dev\lib77c\Update\Updater.cpp.o
+Compiling .pio\build\esp32dev\lib520\WiFi\WiFi.cpp.o
+Archiving .pio\build\esp32dev\lib207\libEthernet.a
+Compiling .pio\build\esp32dev\lib520\WiFi\WiFiAP.cpp.o
+Compiling .pio\build\esp32dev\lib520\WiFi\WiFiClient.cpp.o
+Compiling .pio\build\esp32dev\lib520\WiFi\WiFiGeneric.cpp.o
+Compiling .pio\build\esp32dev\lib520\WiFi\WiFiMulti.cpp.o
+Compiling .pio\build\esp32dev\lib520\WiFi\WiFiSTA.cpp.o
+Archiving .pio\build\esp32dev\lib12e\libSoapESP32.a
+Compiling .pio\build\esp32dev\lib520\WiFi\WiFiScan.cpp.o
+Archiving .pio\build\esp32dev\lib77c\libUpdate.a
+Compiling .pio\build\esp32dev\lib520\WiFi\WiFiServer.cpp.o
+Compiling .pio\build\esp32dev\lib520\WiFi\WiFiUdp.cpp.o
+Compiling .pio\build\esp32dev\lib278\Adafruit GFX Library\Adafruit_GFX.cpp.o
+Compiling .pio\build\esp32dev\lib278\Adafruit GFX Library\Adafruit_GrayOLED.cpp.o
+Compiling .pio\build\esp32dev\lib278\Adafruit GFX Library\Adafruit_SPITFT.cpp.o
+Compiling .pio\build\esp32dev\lib278\Adafruit GFX Library\glcdfont.c.o
+Compiling .pio\build\esp32dev\lib2c1\Adafruit ST7735 and ST7789 Library\Adafruit_ST7735.cpp.o
+Archiving .pio\build\esp32dev\lib520\libWiFi.a
+Compiling .pio\build\esp32dev\lib2c1\Adafruit ST7735 and ST7789 Library\Adafruit_ST7789.cpp.o
+Compiling .pio\build\esp32dev\lib2c1\Adafruit ST7735 and ST7789 Library\Adafruit_ST77xx.cpp.o
+Archiving .pio\build\esp32dev\libFrameworkArduinoVariant.a
+Compiling .pio\build\esp32dev\FrameworkArduino\Esp.cpp.o
+Compiling .pio\build\esp32dev\FrameworkArduino\FirmwareMSC.cpp.o
+Compiling .pio\build\esp32dev\FrameworkArduino\FunctionalInterrupt.cpp.o
+Compiling .pio\build\esp32dev\FrameworkArduino\HWCDC.cpp.o
+Compiling .pio\build\esp32dev\FrameworkArduino\HardwareSerial.cpp.o
+Compiling .pio\build\esp32dev\FrameworkArduino\IPAddress.cpp.o
+Compiling .pio\build\esp32dev\FrameworkArduino\IPv6Address.cpp.o
+Compiling .pio\build\esp32dev\FrameworkArduino\MD5Builder.cpp.o
+Archiving .pio\build\esp32dev\lib2c1\libAdafruit ST7735 and ST7789 Library.a
+Archiving .pio\build\esp32dev\lib278\libAdafruit GFX Library.a
+Compiling .pio\build\esp32dev\FrameworkArduino\Print.cpp.o
+Compiling .pio\build\esp32dev\FrameworkArduino\Stream.cpp.o
+Compiling .pio\build\esp32dev\FrameworkArduino\StreamString.cpp.o
+Compiling .pio\build\esp32dev\FrameworkArduino\USB.cpp.o
+Compiling .pio\build\esp32dev\FrameworkArduino\USBCDC.cpp.o
+Compiling .pio\build\esp32dev\FrameworkArduino\USBMSC.cpp.o
+Compiling .pio\build\esp32dev\FrameworkArduino\WMath.cpp.o
+Compiling .pio\build\esp32dev\FrameworkArduino\WString.cpp.o
+Compiling .pio\build\esp32dev\FrameworkArduino\base64.cpp.o
+Compiling .pio\build\esp32dev\FrameworkArduino\cbuf.cpp.o
+Compiling .pio\build\esp32dev\FrameworkArduino\esp32-hal-adc.c.o
+Compiling .pio\build\esp32dev\FrameworkArduino\esp32-hal-bt.c.o
+Compiling .pio\build\esp32dev\FrameworkArduino\esp32-hal-cpu.c.o
+Compiling .pio\build\esp32dev\FrameworkArduino\esp32-hal-dac.c.o
+Compiling .pio\build\esp32dev\FrameworkArduino\esp32-hal-gpio.c.o
+Compiling .pio\build\esp32dev\FrameworkArduino\esp32-hal-i2c-slave.c.o
+Compiling .pio\build\esp32dev\FrameworkArduino\esp32-hal-i2c.c.o
+Compiling .pio\build\esp32dev\FrameworkArduino\esp32-hal-ledc.c.o
+Compiling .pio\build\esp32dev\FrameworkArduino\esp32-hal-matrix.c.o
+Compiling .pio\build\esp32dev\FrameworkArduino\esp32-hal-misc.c.o
+Compiling .pio\build\esp32dev\FrameworkArduino\esp32-hal-psram.c.o
+Compiling .pio\build\esp32dev\FrameworkArduino\esp32-hal-rmt.c.o
+Compiling .pio\build\esp32dev\FrameworkArduino\esp32-hal-sigmadelta.c.o
+Compiling .pio\build\esp32dev\FrameworkArduino\esp32-hal-spi.c.o
+Compiling .pio\build\esp32dev\FrameworkArduino\esp32-hal-time.c.o
+Compiling .pio\build\esp32dev\FrameworkArduino\esp32-hal-timer.c.o
+Compiling .pio\build\esp32dev\FrameworkArduino\esp32-hal-tinyusb.c.o
+Compiling .pio\build\esp32dev\FrameworkArduino\esp32-hal-touch.c.o
+Compiling .pio\build\esp32dev\FrameworkArduino\esp32-hal-uart.c.o
+Compiling .pio\build\esp32dev\FrameworkArduino\firmware_msc_fat.c.o
+Compiling .pio\build\esp32dev\FrameworkArduino\libb64\cdecode.c.o
+Compiling .pio\build\esp32dev\FrameworkArduino\libb64\cencode.c.o
+Compiling .pio\build\esp32dev\FrameworkArduino\main.cpp.o
+Compiling .pio\build\esp32dev\FrameworkArduino\stdlib_noniso.c.o
+Compiling .pio\build\esp32dev\FrameworkArduino\wiring_pulse.c.o
+Compiling .pio\build\esp32dev\FrameworkArduino\wiring_shift.c.o
+Archiving .pio\build\esp32dev\libFrameworkArduino.a
+Linking .pio\build\esp32dev\firmware.elf
+Retrieving maximum program size .pio\build\esp32dev\firmware.elf
+Checking size .pio\build\esp32dev\firmware.elf
+Advanced Memory Usage is available via "PlatformIO Home > Project Inspect"
+RAM:   [==        ]  18.2% (used 59720 bytes from 327680 bytes)
+Flash: [=====     ]  51.4% (used 1011045 bytes from 1966080 bytes)
+Building .pio\build\esp32dev\firmware.bin
+esptool.py v3.3
+Creating esp32 image...
+Merged 25 ELF sections
+Successfully created esp32 image.
+==================================================== [SUCCESS] Took 24.36 seconds ====================================================
