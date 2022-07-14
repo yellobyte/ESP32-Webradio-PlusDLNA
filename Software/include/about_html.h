@@ -1,6 +1,6 @@
 // about.html file in raw data format for PROGMEM
 //
-#define about_html_version 210201
+#define about_html_version 220714
 const char about_html[] PROGMEM = R"=====(
 <!DOCTYPE html>
 <html>
@@ -27,7 +27,7 @@ const char about_html[] PROGMEM = R"=====(
   Webinterface design: <a target="blank" href="http://www.sanderjochems.nl/">Sander Jochems</a><br>
   App (Android): <a target="blank" href="https://play.google.com/store/apps/details?id=com.thunkable.android.sander542jochems.ESP_Radio">Sander Jochems</a></p>
 	<p>Author of this project: Thomas Jentzsch (yellobyte@bluewin.ch), documented at <a target="blank" href="https://github.com/yellobyte/ESP32-Webradio-PlusDLNA">Github</a>.<br>
-	Date: January 2021</p>
+	Date: July 2022</p>
  </body>
 </html>
 )=====" ;

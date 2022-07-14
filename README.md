@@ -15,7 +15,7 @@ Starting from Ed's code (Version 10.06.2018) this **ESP32 Webradio++** project h
  * integration of [SoapESP32](https://github.com/yellobyte/SoapESP32) library
  * Digital audio output added (TOSLINK optical) using a WM8805 module (Aliexpress)
  * Usage of own VS1053 decoder board (with I2S output and w/o 3.5mm audio sockets)<br />
-   -> You find the Eagle schematic & board files [here](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/EagleFiles).
+   -> You find the Eagle schematic & board files [here](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/tree/main/EagleFiles).
  * VS1053 gets patched with new firmware v2.7 at each reboot<br />
    -> Latest firmware patches for the VLSI VS1053 are available from [here](http://www.vlsi.fi/en/support/software/vs10xxpatches.html).
  * VU meter added on TFT display (needs above mentioned firmware patch)
@@ -29,6 +29,7 @@ Starting from Ed's code (Version 10.06.2018) this **ESP32 Webradio++** project h
  * MQTT functionality & battery stuff removed completely
  * handling of more special chars in webradio streams (some channels seems to have a different utf8 conversion table or philosophy)
  * countless minor changes, some bugfixing
+ * regular modifications if required for building with new espressif32 framework releases   
 
 If interested, have a look at "Revision history.txt" in the doc folder. 
 
@@ -36,10 +37,9 @@ If interested, have a look at "Revision history.txt" in the doc folder.
 
 To install needed libraries (Ethernet, SoapESP32, etc.) do the following:
 
-- **VSCode/PlatformIO**: Click the **platformio sidebar icon**, open the **libraries** view and search for libs. Once found, select the newest release and click on **Add to Project**.
-- **Arduino IDE**: Use the **Library Manager** (available from IDE version 1.6.2). Open the IDE and click to the **Sketch** menu and then **Include Library > Manage Libraries**. Search for libs, select the newest release and click on **install**.  
+In **VSCode/PlatformIO** click the **platformio sidebar icon**, open the **libraries** view and search for libs. Once found, select the newest release and click on **Add to Project**.
 
-Always make sure you have one of the latest versions of **Arduino core for ESP32** installed in your IDE. Older versions might produce build errors.
+Always make sure you have one of the latest versions of **Arduino espressif32 framework** installed. Older versions might produce build errors. Building the project was successfully done with latest espressif32 frameworks V4.2.0 and V5.0.0. Have a look at file [platformio.ini](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Software/platformio.ini) for required settings.
 
 If you want to use a Wiznet W5500 Ethernet card/shield and build with options `ENABLE_CMDSERVER` or `PORT23_ACTIVE` then you will get a build error like this:  
 ```

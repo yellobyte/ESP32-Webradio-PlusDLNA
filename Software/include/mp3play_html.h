@@ -69,7 +69,7 @@ const char mp3play_html[] PROGMEM = R"=====(
    //
    var i, select, opt, tracks, strparts ;
    select = document.getElementById("seltrack") ;
-   var theUrl = "/?mp3list" ;
+   var theUrl = "/?mp3list" + "&version=" + Math.random();
    var xhr = new XMLHttpRequest() ;
    xhr.onreadystatechange = function(){
      if ( xhr.readyState == XMLHttpRequest.DONE )

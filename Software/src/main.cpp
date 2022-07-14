@@ -26,9 +26,10 @@
 //*   - handling of more special chars in webradio streams (each channels seems to have a different     *
 //*     utf8 conversion table or philosophy)                                                            *
 //*   - countless minor changes & improvements, bugfixing                                               *
+//*   - regular modifications for new espressif32 frameworks releases                                   *
 //*  Have a look at "Revision history.txt" in the doc folder.                                           *
 //*                                                                                                     *
-//*  Feb 2021, TJ                                                                                       *
+//*  July 2022, TJ                                                                                      *
 //*                                                                                                     *
 //*******************************************************************************************************
 //
@@ -87,9 +88,9 @@
 //
 
 // Define the version number, also used for webserver as Last-Modified header:
-#define VERSION "18 May 2022 23:55"
+#define VERSION "14 July 2022 13:59"
 //
-// Please define in platform.ini as it affects soapESP32 too !!!!
+// Defined in platform.ini as it affects soapESP32 too !
 //#define USE_ETHERNET                   // Use Ethernet/LAN instead of WiFi builtin
 // 
 
@@ -106,12 +107,12 @@
 #define ENABLE_ESP32_HW_WDT            // Enable ESP32 Hardware Watchdog
 
 #include <Arduino.h>
+//#include <FS.h>
+//#include <SPI.h>
+#include <SD.h>
 #include <nvs.h>
 #include <stdio.h>
 #include <string.h>
-#include <FS.h>
-#include <SD.h>
-#include <SPI.h>
 #ifdef SD_UPDATES
 #include <Update.h>
 #define UPDATE_FILE_NAME "/firmware.bin"
@@ -137,7 +138,7 @@
 #ifdef USE_ETHERNET
 #include <Ethernet.h>
 #include <EthernetUdp.h>
-byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEE};
+byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
 #define _claimSPI(p)  claimSPI(p)    // mp3client.read() sometimes returns garbage without it
 #define _releaseSPI() releaseSPI()
 #else
@@ -201,20 +202,12 @@ IPAddress secondaryDNS(195, 186, 4, 162);     //optional
 #define I2C_SDA_PIN  32
 #define I2C_SCL_PIN  33
 #ifdef ENABLE_SOAP
-#ifndef LS2OLD
 // Default SOAP/DLNA media server settings
-// parameter for Linkstation2 (Buffalo LS520DE NAS, running a DIXIM media server on Linux) 
-#define MEDIASERVER_DEFAULT_MAC "18:C2:BF:1C:6F:DF"
+// parameters for Twonky media server on QNAP TS-253D
+#define MEDIASERVER_DEFAULT_MAC "24:5E:BE:5D:2F:66"
 #define MEDIASERVER_DEFAULT_IP 192,168,1,11
-#define MEDIASERVER_DEFAULT_PORT 55247
-#define MEDIASERVER_DEFAULT_CONTROL_URL "dms/control/ContentDirectory"
-#else
-// parameter for old Linkstation2 (Buffalo LS-Mini NAS, running a Twinky media server on Linux) 
-#define MEDIASERVER_DEFAULT_MAC "10:6F:3F:21:EE:23"
-#define MEDIASERVER_DEFAULT_IP 192,168,1,50
-#define MEDIASERVER_DEFAULT_PORT 9050
-#define MEDIASERVER_DEFAULT_CONTROL_URL "TMSContentDirectory/Control"
-#endif
+#define MEDIASERVER_DEFAULT_PORT 9000
+#define MEDIASERVER_DEFAULT_CONTROL_URL "dev0/srv1/control"
 #endif
 //
 //
@@ -855,7 +848,7 @@ bool VS1053::testComm(const char *header)
 
   dbgprint(header);                                    // Show a header
   if (!digitalRead (dreq_pin)) {
-    dbgprint("VS1053 not properly installed!");
+    dbgprint("VS1053 not properly installed!(?) DREQ=LOW!");
     // Allow testing without the VS1053 module
     pinMode(dreq_pin,  INPUT_PULLUP);                  // DREQ is now input with pull-up
     return false;                                      // Return bad result
@@ -884,13 +877,13 @@ bool VS1053::testComm(const char *header)
 void VS1053::begin()
 {
   pinMode(dreq_pin, INPUT);                            // DREQ is an input
-  pinMode(cs_pin, OUTPUT);                             // The SCI and SDI signals
+  pinMode(cs_pin, OUTPUT);                             // the SCI and SDI signals
   pinMode(dcs_pin,OUTPUT);
-  digitalWrite(dcs_pin, HIGH);                         // Start HIGH for SCI en SDI
+  digitalWrite(dcs_pin, HIGH);                         // start HIGH for SCI en SDI
   digitalWrite(cs_pin, HIGH);
-  if (shutdown_pin >= 0) {                             // Shutdown in use?
+  if (shutdown_pin >= 0) {                             // shutdown in use?
     pinMode(shutdown_pin, OUTPUT);
-    digitalWrite(shutdown_pin, HIGH);                  // Shut down audio output
+    digitalWrite(shutdown_pin, HIGH);                  // shut down audio output
   }
   delay(100);
   // Init SPI in slow mode (200kHz)
@@ -906,13 +899,13 @@ void VS1053::begin()
     //wram_write(0xC019, 0);                           // GPIO ODATA = 0
     //
     delay(100);
-    softReset();                                       // Do a soft reset
+    softReset();                                       // do a soft reset
 #ifdef LOAD_VS1053_PATCH
-    dbgprint("VS1053B loading patch %s", PATCH_VERSION); // Patch must be loaded >after< reset/sw reset
+    dbgprint("VS1053B loading patch %s", PATCH_VERSION); // patch must be loaded >after< reset/sw reset
     delay(20);
     loadVS1053Patch();
     delay(10);
-    await_data_request();                              // Wait for DREQ to rise
+    await_data_request(2000000);                       // wait for DREQ to rise (max 2sec)
 #endif    
     // Switch on the analog parts
     write_register(SCI_AUDATA, 44100 + 1);             // 44.1kHz + stereo
@@ -925,13 +918,13 @@ void VS1053::begin()
     write_register(SCI_CLOCKF, 6 << 12);
 #endif
     delay(10);
-    await_data_request();                              // Wait for DREQ to rise
+    await_data_request(1000000);                       // wait for DREQ to rise (max 1 sec)
     // Now we can set high speed SPI clock.
     VS1053_SPI = SPISettings (5000000, MSBFIRST, SPI_MODE0);   // Speed up SPI
     write_register(SCI_MODE, _BV (SM_SDINEW) | _BV (SM_LINE1));
     testComm("Fast SPI, Testing VS1053 read/write registers again...");
     delay(10);
-    await_data_request();                              // Wait for DREQ to rise
+    await_data_request(1000000);                       // wait for DREQ to rise (max 1sec)
     endFillByte = wram_read(0x1E06) & 0xFF;
     dbgprint("VS1053B endFillByte is %X", endFillByte);
     uint16_t stat = read_register(SCI_STATUS);
@@ -1291,7 +1284,7 @@ byte utf8ascii(byte ascii)
   else if ((c1 != 0xC3) && (ascii == 0x9A || ascii == 0xDC)) {
     c1 = 0;  res = 'U';              // Ü
   }
-  else if ((c1 != 0xC3) && (ascii == 0xB4)) {
+  else if ((c1 != 0xC3) && (ascii == 0xB4 || ascii == 0xEF)) {
     c1 = 0;  res = '\'';             // ´
   }
   else {
@@ -1628,7 +1621,7 @@ int nextSDfileIndex(int16_t inx, int16_t delta)
     return 0;
   }
   dbgprint("nextSDfileIndex: inx=%d delta=%d", inx, delta);
-  if (inx != 0) {                                   // Random playing?
+  if (inx != 0) {                                   // random playing?
     while (true) {
       if (delta > 0) {
         inx++;
@@ -1650,7 +1643,7 @@ int nextSDfileIndex(int16_t inx, int16_t delta)
     }
   }
   dbgprint("nextSDfileIndex: return=%d", inx);
-  return inx;                                      // Return new index
+  return inx;                                       // return new index
 }
 
 //**************************************************************************************************
@@ -1661,14 +1654,14 @@ int nextSDfileIndex(int16_t inx, int16_t delta)
 //**************************************************************************************************
 String getSDfilename(int inx)
 {
-  String        res;                                    // Function result
+  String        res;                                    // function result
   int           x, rnd;
-  //const char*   p = "/";                              // Points to directory/file
+  //const char*   p = "/";                              // points to directory/file
   mp3node_t     mp3node;
 
   if (inx == 0) {                                       // random playing ?
     dbgprint("getSDfilename(0) -> random choice");
-    rnd = random (SD_mp3fileCount);                     // Yes, choose a random index
+    rnd = random(SD_mp3fileCount);                      // choose a random index
     int i = 0, ii = 0;
     while (true) {
       if (mp3nodeList[ii].isDirectory == false) i++;
@@ -1677,8 +1670,8 @@ String getSDfilename(int inx)
     }
     inx = ii;
   }
-  dbgprint("getSDfilename requested index is %d", inx);  // Show requeste node ID
-  currentIndex = inx;                                    // Save current node
+  dbgprint("getSDfilename requested index is %d", inx);  // show requeste node ID
+  currentIndex = inx;                                    // save current node
 
   if (inx < 0 || inx > mp3nodeList.size()) {
     dbgprint("getSDfilename returns error: inx=%d > mp3nodeList.size()=%d or inx=-1", inx, mp3nodeList.size());
@@ -1698,80 +1691,75 @@ String getSDfilename(int inx)
 
   res = String("sdcard") + res;
   dbgprint("getSDfilename returns: %s", res.c_str());
-  return res;                                             // Return full station spec
+  return res;                                             // return full station spec
 }
 
 //**************************************************************************************************
 //                                      L I S T S D T R A C K S                                    *
 //**************************************************************************************************
 // Search all MP3 files on directory of SD card.  Return the number of files found.                *
-// A "node" of max. SD_MAXDEPTH levels (the subdirectory level) will be generated for every file. *
+// A "node" of max. SD_MAXDEPTH levels (the subdirectory level) will be generated for every file.  *
 // The numbers within the node-array is the sequence number of the file/directory in that          *
 // subdirectory.                                                                                   *
 // The list will be stored in sdOutbuf if parameter "send" is true. sdOutbuf can later be send     *
-// to the webinterface if requestd.                                                                *
+// to the webinterface if requested.                                                               *
 //**************************************************************************************************
-int listsdtracks(const char * dirname, int level = 0, bool send = true, int parentDirNodeId = 0)
+int listsdtracks(const char *dirname, int level = 0, bool send = true, int parentDirNodeId = 0)
 {
-  static int16_t  fcount, oldfcount;                   // Total number of files
+  static int16_t  fcount, oldfcount;                   // total number of files
   static int16_t  mp3nodeIndex;
-
-  uint16_t        ldirname;                            // Length of dirname to remove from filename
-  File            root, file;                          // Handle to root and directory entry
-  String          filename;                            // Copy of filename for lowercase test
+  File            root, file;                          // handle to root and directory entry
+  String          filename;                            // copy of filename
   String          tmpstr, tmpstr1;
-  String          lastDir, dn;
+  String          lastDir;
   bool            lastEntryWasDir;
   static bool     delimiterJustAdded = true;
   int16_t         x, mp3nodeIndexThis;
+  int             inx;
   mp3node_t       mp3node;
 
-  if (strcmp (dirname, "/") == 0) {                    // Are we at the root directory?
+  if (strcmp (dirname, "/") == 0) {                    // are we at root ?
     mp3nodeIndex = 0;
-    mp3nodeList.clear();                               // Reset node list
-    fcount = 0;                                        // Yes, reset count
-    sdOutbuf = String();                               // And output buffer
-    if (!SD_okay) {                                    // See if known card
+    mp3nodeList.clear();                               // reset node list
+    fcount = 0;                                        // reset count
+    sdOutbuf = String();                               // reset output buffer
+    if (!SD_okay) {                                    // SD card detected & ok ?
       return 0;
     }
   }
-  oldfcount = fcount;                                  // To see if files found in this directory
-  dbgprint("SD directory is %s", dirname);             // Show current directory
-  ldirname = strlen(dirname);                          // Length of dirname to remove from filename
-  claimSPI("sdopen2");                                 // claim SPI bus
-  root = SD.open(dirname);                             // Open the current directory level
-  releaseSPI();                                        // release SPI bus
+  oldfcount = fcount;
+  dbgprint("current SD directory is now %s", dirname);
+  claimSPI("sdopen2");
+  root = SD.open(dirname);                             // open current directory level
+  releaseSPI();
   claimSPI("listsdtr");
-  if (!root || !root.isDirectory()) {                  // Success?
-    dbgprint("%s is not a directory", dirname);        // No, print debug message
+  if (!root || !root.isDirectory()) {
+    dbgprint("%s is not a directory (error: %s)", dirname, !root ? "!root" : "!root.isDirectory()");
     if (root) {
       root.close();
     }
-    releaseSPI();                                      // release SPI bus
-    return fcount;                                     // and return
+    releaseSPI();
+    return fcount;
   }
-  releaseSPI();                                        // release SPI bus
+  releaseSPI();
   mp3node.isDirectory = true;
   mp3node.parentDir = parentDirNodeId;
-  dn = dirname;
-  x = dn.lastIndexOf("/");                             // we remove leading directory name
-  mp3node.name = dn.substring(x + 1);
+  mp3node.name = root.name();
   mp3nodeList.push_back(mp3node);
   //dbgprint("mp3node added: inx=%d, isDir=%d, parId=%d, name=%s",
   //           mp3nodeIndex, mp3node.isDirectory, mp3node.parentDir, mp3node.name.c_str());
   mp3nodeIndexThis = mp3nodeIndex++;
 
   if (send) {
-    if (strcmp (dirname, "/") == 0) {                  // Root
-      lastDir = String("-1/Rootdirectory ---->\n");
+    if (strcmp (dirname, "/") == 0) {                  // root
+      //lastDir = String("-1/Rootdirectory ---->\n");
     }
-    else {                                             // Not root
+    else {                                             // not root
       lastDir = String("-1") +
                 String(dirname) +
                 String(" ---->\n");
-      int inx;
       for (int i = 5; i < lastDir.length();) {
-        if ((inx = lastDir.indexOf("/", i)) >= i) {    // Web interface doesn't like "/"
+        if ((inx = lastDir.indexOf("/", i)) >= i) {    // web interface doesn't like "/"
           lastDir.setCharAt (inx, '-');
           i = inx + 1;
         }
@@ -1782,94 +1770,97 @@ int listsdtracks(const char * dirname, int level = 0, bool send = true, int pare
     }
     lastEntryWasDir = true;
   }
-  while (true) {                                       // Find all mp3 files
-    claimSPI("opennextf");                             // claim SPI bus
-    file = root.openNextFile();                        // Try to open next
-    releaseSPI();                                      // release SPI bus
+  while (true) {                                       // find all mp3 files
+    claimSPI("opennextf");
+    file = root.openNextFile();                        // get next file (if any)
+    releaseSPI();
     if (!file) {
-      break;                                           // End of list
+      break;                                           // end of list
     }
     const char *p = file.name();
-    if ((p[0] == '.') ||                               // Skip hidden directories
+    if ((p[0] == '.') ||                               // skip hidden directories
         (p[1] == 'S' && p[2] == 'y' && p[3] == 's')) { // and System Volume Directories 
-      claimSPI("close3");                              // claim SPI bus
+      claimSPI("close3");
       file.close();
-      releaseSPI();                                    // release SPI bus
+      releaseSPI();
       continue;
     }
-    if (file.isDirectory()) {                          // Is it a directory?
-      if (level < SD_MAXDEPTH - 1 && fcount < SD_MAXFILES) {  // Yes, dig deeper
-        listsdtracks(file.name(), level + 1, send, mp3nodeIndexThis); // Note: called recursively
+    if (file.isDirectory()) {                          // item is directory ?
+      if (level < SD_MAXDEPTH - 1 && fcount < SD_MAXFILES) {  // digging deeper ?
+        //listsdtracks(file.name(), level + 1, send, mp3nodeIndexThis); // recurse
+        // required modification for espressif32 platform >= 4.2.x
+        listsdtracks(file.path(), level + 1, send, mp3nodeIndexThis); // recurse
       }
     }
     else {
       if (fcount >= SD_MAXFILES) {
-        claimSPI("close4");                            // claim SPI bus
+        claimSPI("close4");
         file.close();
-        releaseSPI();                                  // release SPI bus
+        releaseSPI();
         break;
       }
-      filename = String(file.name());                  // Copy filename
-      //filename.toLowerCase();                        // not used
-      if (filename.endsWith(".mp3") ||
-           filename.endsWith(".MP3")) {                // It is a file, but is it an MP3?
+      filename = String(file.name());
+      if ((inx = filename.indexOf(".mp3")) > 0 ||
+          (inx = filename.indexOf(".MP3")) > 0) {      // neglect non-MP3 files
         mp3node.isDirectory = false;
         mp3node.parentDir = mp3nodeIndexThis;
-        x = filename.lastIndexOf("/");
-        mp3node.name = filename.substring(x + 1);
+        mp3node.name = filename;
         mp3nodeList.push_back(mp3node);
         //dbgprint("mp3node added: inx=%d, isDir=%d, parId=%d, name=%s",
         //           mp3nodeIndex, mp3node.isDirectory, mp3node.parentDir, mp3node.name.c_str());
         mp3nodeIndex++;
+        fcount++;                                      // count total number of MP3 files
+        tmpstr1 = "";
 
-        fcount++;                                      // Yes, count total number of MP3 files
-        tmpstr = String(mp3nodeIndex - 1);
-
-        if (send) {                                    // Need to add to string for webinterface?
+        if (send) {
           if (lastEntryWasDir) {
             if (!delimiterJustAdded) {
-              sdOutbuf += String("-1/ \n");            // Spacing in list
+              sdOutbuf += String("-1/ \n");            // add spacing in list
               delimiterJustAdded = true;
             }
             sdOutbuf += lastDir;
             lastEntryWasDir = false;
           }
-          tmpstr1 = tmpstr;
+          tmpstr = filename.substring(0, inx);         // extract file name without extension
+          tmpstr1 += String(mp3nodeIndex - 1);
+          tmpstr1 += "/";
           if (strcmp(dirname, "/") == 0) {
-            tmpstr1 += String("/");                    // For correct display on Webpage
+            tmpstr1 += String("Root-");
           }
-          sdOutbuf += tmpstr1 +                        // Form line for mp3play_html page
-                       utf8ascii(file.name() + ldirname) +    // Filename starts after directoryname
-                       String("\n");
+          tmpstr1 += utf8ascii(tmpstr.c_str());
+          tmpstr1 += "\n";
+          sdOutbuf += tmpstr1;                         // update file list
+                                                       // will fail silently when max alloc heap gets too small !
+                                                       // (~17kB, ESP.getMaxAllocHeap() will tell)
           delimiterJustAdded = false;
         }
-        dbgprint("Index+File: %s %s", tmpstr.c_str(), file.name());
+        dbgprint("Index+File: %d \"%s\"", mp3nodeIndex - 1, file.name());
       }
     }
     if (send) {
       //mp3loop();                                     // commented out, stop playing while indexing SD card
     }
-    claimSPI("close5");                                // claim SPI bus
+    claimSPI("close5");
     file.close();
-    releaseSPI();                                      // release SPI bus
+    releaseSPI();
   }
   if (send) {
-    if (fcount != oldfcount && !delimiterJustAdded) {  // Files in this directory?
-      sdOutbuf += String("-1/ \n");                    // Spacing in list
+    if (fcount != oldfcount && !delimiterJustAdded) {  // files in this directory?
+      sdOutbuf += String("-1/ \n");                    // add spacing in list
       delimiterJustAdded = true;
     }
   }
-  claimSPI("close6");                                  // claim SPI bus
+  claimSPI("close6");
   root.close();
-  releaseSPI();                                        // release SPI bus
-  if (strcmp(dirname, "/") == 0) {                     // Are we at the root directory?
+  releaseSPI();
+  if (strcmp(dirname, "/") == 0) {                     // are we back at root directory?
     dbgprint("mp3nodeList contains now %d entries", mp3nodeList.size());
     dbgprint("sdOutbuf.length() = %d", sdOutbuf.length());
   }
   //esp_task_wdt_reset();                              // does not help against "task_wdt:  - IDLE0 (CPU 0)"
   delay(1);                                            // this does: allows task switching
 
-  return fcount;                                       // return number of MP3s (sofar)
+  return fcount;                                       // return number of registered MP3 files (so far)
 }
 
 //**************************************************************************************************
@@ -1968,9 +1959,7 @@ void IRAM_ATTR timer5sec()
     }
     bytesplayed = totalCount - oldtotalCount;    // number of bytes played in the last 5 seconds
     oldtotalCount = totalCount;                  // save for comparison in next cycle
-    // for 10sec
-    //if (bytesplayed < 10000) {                   // still properly playing?
-    if (bytesplayed < 5000) {                   // still properly playing?
+    if (bytesplayed < 5000) {                    // still properly playing?
       //if (morethanonce > 10) {                 // happened too many times?
       //  ESP.restart();                           // reset the CPU
       //}
@@ -1984,7 +1973,6 @@ void IRAM_ATTR timer5sec()
     else {
       //                                         // data has been sent to MP3 decoder
       // Bitrate in kbits/s is bytesplayed / sec / 1000 * 8
-      //mbitrate = (bytesplayed + 625) / 1250;     // measured bitrate (10s)
       mbitrate = (bytesplayed + 312) / 625;      // measured bitrate (5s)
       morethanonce = 0;                          // data seen, reset failcounter
 #ifdef USE_ETHERNET
@@ -2009,7 +1997,7 @@ error_handling:
         reInitEthernet = true;
 #endif
     }
-    morethanonce++;                            // Count the fails
+    morethanonce++;                            // count the fails
   }
 }
 
@@ -2021,54 +2009,54 @@ error_handling:
 //**************************************************************************************************
 void IRAM_ATTR timer100()
 {
-  sv int16_t count5sec = 0;                      // Counter for activating 5 seconds process
-  sv int16_t eqcount = 0;                        // Counter for equal number of clicks
-  sv int16_t oldclickcount = 0;                  // To detect difference
+  sv int16_t count5sec = 0;                      // counter for activating 5 seconds process
+  sv int16_t eqcount = 0;
+  sv int16_t oldclickcount = 0;                  // for detecting difference
 
-  if (++count5sec == 100 ) {                     // 5 seconds passed?
-    timer5sec();                                 // Yes, do 5 second procedure
-    count5sec = 0;                               // Reset count
+  if (++count5sec == 50 ) {                      // 5 seconds passed?
+    timer5sec();                                 // do 5 second procedure
+    count5sec = 0;                               // reset count
   }
-  if ((count5sec % 10) == 0) {                   // One second over?
-    if (++timeinfo.tm_sec >= 60) {               // Yes, update number of seconds
-      timeinfo.tm_sec = 0;                       // Wrap after 60 seconds
-      time_req = true;                           // Yes, show current time request
+  if ((count5sec % 10) == 0) {                   // one second over?
+    if (++timeinfo.tm_sec >= 60) {               // update number of seconds
+      timeinfo.tm_sec = 0;                       // wrap after 60 seconds
+      time_req = true;                           // show current time request
       if (++timeinfo.tm_min >= 60) {
-        timeinfo.tm_min = 0;                     // Wrap after 60 minutes
+        timeinfo.tm_min = 0;                     // wrap after 60 minutes
         if (++timeinfo.tm_hour >= 24) {
-          timeinfo.tm_hour = 0;                  // Wrap after 24 hours
+          timeinfo.tm_hour = 0;                  // wrap after 24 hours
         }
       }
     }
   }
   // handle rotary encoder, inactivity counter will be reset by encoder interrupt
-  if (++enc_inactivity == 36000) {               // Count inactivity time
-    enc_inactivity = 1000;                       // Prevent wrap
+  if (++enc_inactivity == 36000) {               // count inactivity time
+    enc_inactivity = 1000;                       // prevent wrap
   }
   // clear rotation counter after some inactivity
   if (enc_inactivity > 15 && locrotcount) {
     locrotcount = 0;
   }
-  // Now detection of single/double click of rotary encoder switch
-  if (clickcount) {                              // Any click?
-    if (oldclickcount == clickcount) {           // Yes, stable situation?
-      if (++eqcount == 5) {                      // Long time stable?
+  // now detection of single/double click of rotary encoder switch
+  if (clickcount) {                              // any click?
+    if (oldclickcount == clickcount) {           // stable situation?
+      if (++eqcount == 5) {                      // long time stable?
         eqcount = 0;
-        if (clickcount > 2) {                    // Triple click?
+        if (clickcount > 2) {                    // triple click?
           //tripleclick = true;
         }
-        else if (clickcount > 1) {               // Double click?
-          doubleClick = true;                    // Yes, set result
+        else if (clickcount > 1) {               // double click?
+          doubleClick = true;
         }
         else {
-          singleClick = true;                    // Just one click seen
+          singleClick = true;
         }
-        clickcount = 0;                          // Reset number of clicks
+        clickcount = 0;
       }
     }
     else {
-      oldclickcount = clickcount;                // To detect change
-      eqcount = 0;                               // Not stable, reset count
+      oldclickcount = clickcount;                // for detecting change
+      eqcount = 0;                               // not stable yet, reset count
     }
   }
 }
@@ -3526,7 +3514,7 @@ void setup()
   if (mp3play_html_version < 210201) dbgprint(wvn, "mp3play");
   if (defaultprefs_version < 210201) dbgprint(wvn, "defaultprefs");
   // print some memory and sketch info
-  dbgprint("Starting ESP32-radio running on CPU %d at %d MHz.  Version %s.  Free memory %d",
+  dbgprint("Starting ESP32-radio running on CPU %d at %d MHz. Version %s. Total free memory %d Bytes.",
              xPortGetCoreID(),
              ESP.getCpuFreqMHz(),
              VERSION,
@@ -3949,16 +3937,16 @@ void handlehttpreply()
       }
       sndstr += readPrefs(true);                          // Read and send
     }
-    else if (http_getcmd.startsWith("getdefs")) {         // Is it a "Get default preferences"?
-      sndstr += String(defprefs_txt + 1);                 // Yes, read initial values
+    else if (http_getcmd.startsWith("getdefs")) {         // is it a "Get default preferences"?
+      sndstr += String(defprefs_txt + 1);                 // read initial values
     }
-    else if (http_getcmd.startsWith("saveprefs")) {       // Is it a "Save preferences"
-      writePrefs();                                       // Yes, handle it
-      highestPreset = findHighestPreset();                // Highest preset might have been changed
+    else if (http_getcmd.startsWith("saveprefs")) {       // is it a "Save preferences"
+      writePrefs();                                       // handle it
+      highestPreset = findHighestPreset();                // highest preset might have been changed
     }
-    else if (http_getcmd.startsWith("mp3list")) {         // Is it a "Get SD MP3 tracklist"?
+    else if (http_getcmd.startsWith("mp3list")) {         // is it a "Get SD MP3 tracklist"?
       _claimSPI("httpreply2");                            // claim SPI bus
-      cmdclient.print(sndstr);                            // Yes, send header
+      cmdclient.print(sndstr);                            // send header
       _releaseSPI();                                      // release SPI bus
       if (!SD_okay) {                                     // See if known card
         _claimSPI("httpreply3");                          // claim SPI bus
@@ -4650,8 +4638,8 @@ void checkEncoderAndButtons()
       }
     }
     // TEST
-    dbgprint("Total minimum free memory of all regions: %d Bytes, FreeHeap: %d Bytes, minEverFreeHeap: %d, minStack: %d Bytes\n", 
-             ESP.getMinFreeHeap(), xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize(), uxTaskGetStackHighWaterMark(NULL)); 
+    dbgprint("Total free memory of all regions=%d (minEver=%d), freeHeap=%d (minEver=%d), minStack=%d (in Bytes)", 
+             ESP.getFreeHeap(), ESP.getMinFreeHeap(), xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize(), uxTaskGetStackHighWaterMark(NULL)); 
     //              
     return;
   }  
@@ -4661,10 +4649,10 @@ void checkEncoderAndButtons()
     singleClick = false;
     if (encoderMode == SELECT) {
       if (playMode == STATION) {
-        encoderMode = IDLING;                                // Back to default mode
-        currentPreset = -1;                                  // Make sure current is different
-        ini_block.newpreset = enc_preset;                    // Make a definite choice
-        //tftset(4, "");                                     // Clear text
+        encoderMode = IDLING;                                // back to default mode
+        currentPreset = -1;                                  // make sure current preset is different
+        ini_block.newpreset = enc_preset;                    // make a definite choice
+        //tftset(4, "");                                     // clear text
         dbgprint("ini_block.newpreset=%d", ini_block.newpreset);
         muteFlag = 30;                                       // ca. 3 sec.
         mp3fileRepeatFlag = NOREPEAT;
@@ -4804,9 +4792,10 @@ void checkEncoderAndButtons()
         dbgprint("Output is now %s", muteFlag ? "muted" : "unmuted");
       }
     }
-    Serial.printf("Total minimum free memory of all regions: %d Bytes, FreeHeap: %d Bytes, minEverFreeHeap: %d, minStack: %d Bytes\n", 
-                  ESP.getMinFreeHeap(), xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize(), uxTaskGetStackHighWaterMark(NULL)); 
-
+    // TEST
+    dbgprint("Total free memory of all regions=%d (minEver=%d), freeHeap=%d (minEver=%d), minStack=%d (in Bytes)", 
+             ESP.getFreeHeap(), ESP.getMinFreeHeap(), xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize(), uxTaskGetStackHighWaterMark(NULL)); 
+    //
     return;
   }
   if (rotationcount == 0) return;
@@ -5042,7 +5031,8 @@ void mp3loop()
 
   if (dataMode == STOPREQD) {                           // STOP requested?
     dbgprint("mp3loop: STOP requested");
-    xQueueReset (dataQueue);
+    //if (currentSource != SDCARD && currentSource != MEDIASERVER)
+      xQueueReset (dataQueue);
     if (currentSource == SDCARD) {
       dbgprint("mp3loop: close mp3file");
       claimSPI("close");                                // claim SPI bus
@@ -5063,7 +5053,8 @@ void mp3loop()
     chunked = false;                                    // Not longer chunked
     datacount = 0;                                      // Reset datacount
     outqp = outchunk.buf;                               // and pointer
-    queuefunc(QSTOPSONG);                               // Queue a request to stop the song
+    //if (currentSource != SDCARD && currentSource != MEDIASERVER)    
+      queuefunc(QSTOPSONG);                             // Queue a request to stop the song
     metaint = 0;                                        // No metaint known now
     dataMode = STOPPED;                                 // yes, state becomes STOPPED
     currentSource = NONE;                               // currently no socket open
@@ -5236,6 +5227,7 @@ void mp3loop()
       mp3file.close();                                     // Close file
       releaseSPI();                                        // release SPI bus
       dataMode = STOPREQD;                                 // End of local mp3-file detected
+      delay(100);
       if (SD_okay && currentIndex > 0) {
         if (!mp3fileRepeatFlag)
           fileIndex = nextSDfileIndex(currentIndex, +1);   // Select the next file on SD
@@ -5261,6 +5253,7 @@ void mp3loop()
       dbgprint("mp3loop: STOP (end of file from media server)");
       soap.readStop();
       dataMode = STOPREQD;                                     // End of local mp3-file detected
+      delay(100);
       if (mp3fileRepeatFlag != NOREPEAT) {
         int16_t newIndex;
         if (mp3fileRepeatFlag == SONG) {
@@ -6566,7 +6559,7 @@ const char* analyzeCmd(const char* par, const char* val)
       }
     }
   }
-  else if (argument == "rescan") {                    // Re-Scan SD-Card
+  else if (argument == "rescan") {                    // re-Scan SD-Card
     buttonSD = true;                                  // we simulate a pressed button
     enc_inactivity = 0;
   }
@@ -6575,14 +6568,14 @@ const char* analyzeCmd(const char* par, const char* val)
       av = mp3fileBytesLeft;                          // available bytes in file
     }
     else { // STATION or MEDIASERVER
-      _claimSPI("analyzecmd1");                       // claim SPI bus
+      _claimSPI("analyzecmd1");
       av = mp3client.available();                     // available in stream
-      _releaseSPI();                                  // release SPI bus
+      _releaseSPI();
     }
     sprintf(reply, "Free memory %d, chunks in queue %d, stream %d, bitrate %d kbps, vol %d",
               ESP.getFreeHeap(), uxQueueMessagesWaiting (dataQueue), av, mbitrate, ini_block.reqvol);
-    dbgprint("Total minimum free memory of all regions: %d Bytes, FreeHeap: %d Bytes, minEverFreeHeap: %d", 
-             ESP.getMinFreeHeap(), xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize()); 
+    dbgprint("Total free memory of all regions=%d (minEver=%d), freeHeap=%d (minEver=%d), minStack=%d (in Bytes)", 
+             ESP.getFreeHeap(), ESP.getMinFreeHeap(), xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize(), uxTaskGetStackHighWaterMark(NULL)); 
     dbgprint("Stack minimum mainTask was %d", uxTaskGetStackHighWaterMark (mainTask));
     dbgprint("Stack minimum playTask was %d", uxTaskGetStackHighWaterMark (xplayTask));
     dbgprint("Stack minimum spfTask  was %d", uxTaskGetStackHighWaterMark (xspfTask));
@@ -6593,48 +6586,48 @@ const char* analyzeCmd(const char* par, const char* val)
     dbgprint("Volume setting is %d", ini_block.reqvol);
   }
   // Commands for bass/treble control
-  else if (argument.startsWith("tone")) {            // Tone command
-    if (argument.indexOf("ha") > 0) {                // High amplitue? (for treble)
-      ini_block.rtone[0] = ivalue;                   // Yes, prepare to set ST_AMPLITUDE
+  else if (argument.startsWith("tone")) {            // tone command
+    if (argument.indexOf("ha") > 0) {                // high amplitue? (for treble)
+      ini_block.rtone[0] = ivalue;                   // prepare to set ST_AMPLITUDE
     }
-    if (argument.indexOf("hf") > 0) {                // High frequency? (for treble)
-      ini_block.rtone[1] = ivalue;                   // Yes, prepare to set ST_FREQLIMIT
+    if (argument.indexOf("hf") > 0) {                // high frequency? (for treble)
+      ini_block.rtone[1] = ivalue;                   // prepare to set ST_FREQLIMIT
     }
-    if (argument.indexOf("la") > 0) {                // Low amplitue? (for bass)
-      ini_block.rtone[2] = ivalue;                   // Yes, prepare to set SB_AMPLITUDE
+    if (argument.indexOf("la") > 0) {                // low amplitue? (for bass)
+      ini_block.rtone[2] = ivalue;                   // prepare to set SB_AMPLITUDE
     }
-    if (argument.indexOf("lf") > 0) {                // High frequency? (for bass)
-      ini_block.rtone[3] = ivalue;                   // Yes, prepare to set SB_FREQLIMIT
+    if (argument.indexOf("lf") > 0) {                // high frequency? (for bass)
+      ini_block.rtone[3] = ivalue;                   // prepare to set SB_FREQLIMIT
     }
-    reqtone = true;                                  // Set change request
+    reqtone = true;                                  // set change request
     sprintf(reply, "Parameter for bass/treble %s set to %d",
             argument.c_str(), ivalue);
   }
   else if (argument == "debug") {                    // debug on/off request?
-    DEBUG = ivalue;                                  // Yes, set flag accordingly
+    DEBUG = ivalue;                                  // set flag accordingly
   }
-  else if (argument == "getnetworks") {              // List all WiFi networks?
-    sprintf(reply, networks.c_str());                // Reply is SSIDs
+  else if (argument == "getnetworks") {              // list all WiFi networks?
+    sprintf(reply, networks.c_str());                // reply is SSIDs
   }
   else if (argument.startsWith("clk_")) {            // TOD parameter?
-    if (argument.indexOf("server") > 0) {            // Yes, NTP server spec?
-      ini_block.clk_server = value;                  // Yes, set server
+    if (argument.indexOf("server") > 0) {            // NTP server spec?
+      ini_block.clk_server = value;                  // set server
     }
 #ifdef USE_ETHERNET
-    if (argument.indexOf("tzstring") > 0) {          // Yes, time zone string?
-      ini_block.clk_tzstring = value;                // Yes, set time zone string
+    if (argument.indexOf("tzstring") > 0) {          // time zone string?
+      ini_block.clk_tzstring = value;                // set time zone string
     }
 #else
-    if (argument.indexOf("offset") > 0) {            // Offset with respect to UTC spec?
-      ini_block.clk_offset = ivalue;                 // Yes, set offset
+    if (argument.indexOf("offset") > 0) {            // offset with respect to UTC spec?
+      ini_block.clk_offset = ivalue;                 // set offset
     }
-    if (argument.indexOf("dst") > 0) {               // Offset duringe DST spec?
-      ini_block.clk_dst = ivalue;                    // Yes, set DST offset
+    if (argument.indexOf("dst") > 0) {               // offset duringe DST spec?
+      ini_block.clk_dst = ivalue;                    // set DST offset
     }
 #endif
   }
 #ifdef ENABLE_SOAP
-  else if (argument.startsWith("srv_")) {    // media server parameter?
+  else if (argument.startsWith("srv_")) {            // media server parameter?
     if (argument.indexOf("ip") > 0) {                // media server ip ?
       ini_block.srv_ip.fromString(value.c_str());
       //dbgprint("New media server ip=%s", ini_block.srv_ip.toString().c_str());
@@ -6657,7 +6650,7 @@ const char* analyzeCmd(const char* par, const char* val)
     sprintf(reply, "%s called with illegal parameter: %s",
             NAME, argument.c_str());
   }
-  return reply;                                      // Return reply to the caller
+  return reply;                                      // return reply to the caller
 }
 
 //**************************************************************************************************
@@ -7220,8 +7213,16 @@ void handle_spec()
           tftset(4, "Scan SD card...");
           handle_tft_txt();                                  // immidiate TFT refresh necessary
           handle_tft_txt();                                  // (2 sections)
-          SD_mp3fileCount = listsdtracks("/", 0, true);      // build file list
+          // TEST
+          dbgprint("Total free memory of all regions=%d (minEver=%d), freeHeap=%d (minEver=%d), minStack=%d (in Bytes)", 
+                   ESP.getFreeHeap(), ESP.getMinFreeHeap(), xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize(), uxTaskGetStackHighWaterMark(NULL)); 
+          //            
+          SD_mp3fileCount = listsdtracks("/", 0, true);      // build SD file index
           p = dbgprint("%d mp3 tracks on SD", SD_mp3fileCount);
+          // TEST
+          dbgprint("Total free memory of all regions=%d (minEver=%d), freeHeap=%d (minEver=%d), minStack=%d (in Bytes)", 
+                   ESP.getFreeHeap(), ESP.getMinFreeHeap(), xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize(), uxTaskGetStackHighWaterMark(NULL)); 
+          //            
           tftset(4, p);                                      // show number of tracks on TFT
           if (!SD_mp3fileCount)
             tftset(1, "SD Card is empty !");
@@ -7239,7 +7240,7 @@ void handle_spec()
 // Handles display of text, time and volume on TFT & some other low priority stuff                 *
 // This task runs on a low priority.                                                               *
 //**************************************************************************************************
-void spfTask (void * parameter)
+void spfTask (void *parameter)
 {
   while (true) {
     handle_spec();                                           // Maybe some special funcs?

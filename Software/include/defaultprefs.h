@@ -1,6 +1,6 @@
 // Default preferences in raw data format for PROGMEM
 //
-#define defaultprefs_version 210201
+#define defaultprefs_version 220714
 const char defprefs_txt[] PROGMEM = R"=====(
 # Example configuration, unwanted lines can be deleted or altered, new lines can be added
 # Programmable input pins:
@@ -38,10 +38,10 @@ preset_06 = scast.regenbogen.de/dpop-128-mp3              # 6 - Radio Regenbogen
 preset_07 = scast.regenbogen.de/oldies-128-mp3            # 7 - Radio Regenbogen Oldies
 preset_08 = scast.regenbogen.de/crock-128-mp3             # 8 - Radio Regenbogen Classic Rock
 preset_09 = scast.regenbogen.de/live5                     # 9 - Radio Regenbogen Soft & Lazy
-preset_10 = swr-swr3-live.cast.addradio.de/swr/swr3/live/mp3/128/stream.mp3 # 10 - SWR3
+preset_10 = liveradio.swr.de/sw282p3/swr3/play.mp3        # 10 - SWR3
 preset_11 = stream.rtlradio.de/rtl-de-national/mp3-192    # 11 - RTL Radio
 preset_12 = stream.rtlradio.de/rtl-de-beste-hits/mp3-192  # 12 - RTL Radio Aller Zeiten
-preset_13 = rbb-radioeins-live.cast.addradio.de/rbb/radioeins/live/mp3/mid # 13 - RadioEins rbb
+preset_13 = www.radioeins.de/frankfurt/livemp3            # 13 - RadioEins rbb
 preset_14 = stream.srg-ssr.ch/m/drs3/mp3_128              # 14 - SRF 3
 preset_15 = stream.srg-ssr.ch/m/rsp/mp3_128               # 15 - Radio Swiss Pop
 preset_16 = radiopilatus.ice.infomaniak.ch/pilatus192.mp3 # 16 - Radio Pilatus
@@ -63,11 +63,11 @@ clk_dst = 1                                                 # Offset during dayl
 clk_tzstring = CET-1CEST-2,M3.5.0/02:00:00,M10.5.0/03:00:00 # Posix time zone string for CH/D/A
 #
 # MAC of media server needed for WOL
-srv_mac = 18:C2:BF:1D:6E:DE
-# For accessing a DLNA server running e.g. on a NAS
+srv_mac = 24:5E:BE:5D:2F:66
+# For accessing a DLNA media server e.g. Twonky running on QNAP TS-253D NAS
 srv_ip = 192.168.1.11
-srv_port = 55247
-srv_controlUrl = dms/control/ContentDirectory
+srv_port = 9000
+srv_controlUrl = dev0/srv1/control
 # Some IR codes
 ir_02FD = repeat
 ir_10EF = preset = 4
