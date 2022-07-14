@@ -99,5 +99,5 @@
 02-01-2020, TJ: integration of SoapESP32 for playing files from DLNA media server
 09-04-2022, TJ: mp3play_html.h modified (ensure refresh of mp3 list)
 10-05-2022, TJ: Faster recovery after loss of station (timer10sec() -> timer5sec())
-14-02-2022, TJ: Required modifications for espressif32 frameworks >= V4.2.0
+14-07-2022, TJ: Required modifications for espressif32 frameworks >= V4.2.0
 
