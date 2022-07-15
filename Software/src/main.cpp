@@ -88,7 +88,7 @@
 //
 
 // Define the version number, also used for webserver as Last-Modified header:
-#define VERSION "14 July 2022 13:59"
+#define VERSION "15 July 2022 13:55"
 //
 // Defined in platform.ini as it affects soapESP32 too !
 //#define USE_ETHERNET                   // Use Ethernet/LAN instead of WiFi builtin
@@ -223,7 +223,7 @@ char*       dbgprint(const char* format, ...);
 const char* analyzeCmd(const char* str);
 const char* analyzeCmd(const char* par, const char* val);
 void        chomp(String &str);
-String      limitString(String &strg, int num = 2);
+String      limitString(String& strg, int maxPixel);
 String      httpHeader(String contentstype);
 bool        nvsSearch(const char* key);
 void        mp3loop();
@@ -1221,18 +1221,18 @@ bool nvsSearch(const char* key)
 //**************************************************************************************************
 void tftset(uint16_t inx, const char *str)
 {
-  if (inx < TFTSECS) {                                 // Segment available on display
-    if (str) {                                         // String specified?
-      tftdata[inx].str = String(str);                  // Yes, set string
+  if (inx < TFTSECS) {                                 // segment available on display ?
+    if (str) {                                         // string specified?
+      tftdata[inx].str = String(str);                  // set string
     }
-    tftdata[inx].update_req = true;                    // and request flag
+    tftdata[inx].update_req = true;                    // and request update
   }
 }
 
 void tftset(uint16_t inx, String& str)
 {
-  tftdata[inx].str = str;                              // Set string
-  tftdata[inx].update_req = true;                      // and request flag
+  tftdata[inx].str = str;                              // set string
+  tftdata[inx].update_req = true;                      // and request update
 }
 
 //**************************************************************************************************
@@ -1254,8 +1254,8 @@ byte utf8ascii(byte ascii)
   else if ((c1 != 0xC3) && (ascii == 0xC9)) {
     c1 = 0;  res = 'E';              // É
   }
-  else if ((c1 != 0xC3) && (ascii == 0x84 || ascii == 0xE0 || ascii == 0xE1 || ascii == 0xE4)) {
-    c1 = 0;  res = 'a';              // à, á oder ä
+  else if ((c1 != 0xC3) && (ascii == 0x84 || ascii == 0x86 || ascii == 0xE0 || ascii == 0xE1 || ascii == 0xE4 || ascii == 0xE5)) {
+    c1 = 0;  res = 'a';              // à, á, å oder ä
   }
   else if ((c1 != 0xC3) && (ascii == 0xE7)) {
     c1 = 0;  res = 'c';              // ç
@@ -1315,12 +1315,12 @@ byte utf8ascii(byte ascii)
 //**************************************************************************************************
 // In Place conversion UTF8-string to Extended ASCII (ASCII is shorter!).                          *
 //**************************************************************************************************
-void utf8ascii(char* s)
+void utf8ascii(char *s)
 {
   int  i, k = 0;                     // Indexes for in en out string
   char c;
 
-  for (i = 0; s[i]; i++) {         // For every input character
+  for (i = 0; s[i]; i++) {           // For every input character
     c = utf8ascii(s[i]);             // Translate if necessary
     if (c) {                         // Good translation?
       s[k++] = c;                    // Yes, put in output string
@@ -1334,19 +1334,15 @@ void utf8ascii(char* s)
 //**************************************************************************************************
 // Conversion UTF8-String to Extended ASCII String.                                                *
 //**************************************************************************************************
-String utf8ascii(const char* s)
+String utf8ascii(const char *s)
 {
-  int  i;                            // Index for input string
-  char c;
-  String res = "";                   // Result string
+  int  len = strlen(s);
+  char buf[len + 1];
+  
+  strncpy(buf, s, sizeof(buf));
+  utf8ascii(buf);
 
-  for (i = 0; s[i]; i++) {           // For every input character
-    c = utf8ascii(s[i]);             // Translate if necessary
-    if (c) {                         // Good translation?
-      res += String(c);              // Yes, put in output string
-    }
-  }
-  return res;
+  return String(buf);
 }
 
 //**************************************************************************************************
@@ -1354,7 +1350,7 @@ String utf8ascii(const char* s)
 //**************************************************************************************************
 // For encoding ID3-Tags                                                                           *
 //**************************************************************************************************
-void utf16ascii(char* s, int length)
+void utf16ascii(char *s, int length)
 {
   int  i, k = 0;
 
@@ -1718,7 +1714,12 @@ int listsdtracks(const char *dirname, int level = 0, bool send = true, int paren
   int             inx;
   mp3node_t       mp3node;
 
-  if (strcmp (dirname, "/") == 0) {                    // are we at root ?
+  if (strstr(dirname, "System Volume Information")) {
+    // we skip unwanted system directories
+    return fcount;
+  }
+
+  if (strcmp(dirname, "/") == 0) {                     // are we at root ?
     mp3nodeIndex = 0;
     mp3nodeList.clear();                               // reset node list
     fcount = 0;                                        // reset count
@@ -1732,6 +1733,7 @@ int listsdtracks(const char *dirname, int level = 0, bool send = true, int paren
   claimSPI("sdopen2");
   root = SD.open(dirname);                             // open current directory level
   releaseSPI();
+
   claimSPI("listsdtr");
   if (!root || !root.isDirectory()) {
     dbgprint("%s is not a directory (error: %s)", dirname, !root ? "!root" : "!root.isDirectory()");
@@ -2170,17 +2172,17 @@ void showStreamTitle(const char *ml, bool full)
 {
   char* p1;
   char* p2;
-  char  streamtitle[150];                      // Streamtitle from metadata
+  char  streamtitle[150];                      // streamtitle from metadata
 
   if (strstr(ml, "StreamTitle=")) {
     dbgprint(ml);
-    p1 = (char*)ml + 12;                       // Begin of artist and title
-    if ((p2 = strstr (ml, "';"))) {            // Search for end of title
-      if (*p1 == '\'') {                       // Surrounded by quotes?
+    p1 = (char*)ml + 12;                       // begin of artist and title
+    if ((p2 = strstr(ml, "';"))) {             // search for end of title
+      if (*p1 == '\'') {                       // surrounded by quotes?
         p1++;
         //p2--;
       }
-      *p2 = '\0';                              // Strip the rest of the line
+      *p2 = '\0';                              // strip the rest of the line
     }
     // save last part of string as streamtitle.  Protect against buffer overflow
     strncpy(streamtitle, p1, sizeof (streamtitle));
@@ -2201,8 +2203,8 @@ void showStreamTitle(const char *ml, bool full)
   // save for status request from browser
   icystreamtitle = streamtitle;
   if (!full) {
-    if ((p1 = strstr (streamtitle, " - ")) ||
-         (p1 = strstr (streamtitle, " / "))) { // look for artist/title separator
+    if ((p1 = strstr(streamtitle, " - ")) ||
+         (p1 = strstr(streamtitle, " / "))) {  // look for artist/title separator
       *p1++ = '\n';                            // found: replace 3 characters by newline
       p2 = p1 + 2;
       if (*p2 == ' ') {                        // leading space in title?
@@ -2211,8 +2213,8 @@ void showStreamTitle(const char *ml, bool full)
       strcpy (p1, p2);                         // before: ".. - ..", after: "..\n.."
     }
     // skip [xxx] if exists (comes only with some radio stations, e.g. 1FM)
-    if ((p1 = strstr (streamtitle, "[")) &&
-         (p2 = strstr (streamtitle, "]")) &&
+    if ((p1 = strstr(streamtitle, "[")) &&
+         (p2 = strstr(streamtitle, "]")) &&
          p1 < p2) {
       *p1 = '\0';
       if (*(p1 - 1) == ' ') *(p1 - 1) = '\0';
@@ -2514,13 +2516,13 @@ bool handleID3 (String& path)
         if (tenc == 0x01 || tenc == 0x02) {                  // UTF-16 string (Little Endian or Big Endian)
           utf16ascii(metalinebf + 1, stg - 1);
         }
-        if ((strncmp(ID3tag.tagid, "TPE1", 4) == 0) ||       // Artist
-            (strncmp(ID3tag.tagid, "TIT2", 4) == 0)) {       // Songtitle
+        if ((strncmp(ID3tag.tagid, "TPE1", 4) == 0) ||       // artist
+            (strncmp(ID3tag.tagid, "TIT2", 4) == 0)) {       // song title
           dbgprint("ID3 %s = %s", ID3tag.tagid, metalinebf + 1);
-          artttl += String(metalinebf + 1);                  // Yes, add to string
-          artttl += String("\n");                            // Add newline
+          artttl += String(metalinebf + 1);                  // add to string
+          artttl += String("\n");                            // add newline
         }
-        if (strncmp(ID3tag.tagid, "TALB", 4) == 0) {         // Album
+        if (strncmp(ID3tag.tagid, "TALB", 4) == 0) {         // album
           dbgprint("ID3 %s = %s", ID3tag.tagid, metalinebf + 1);
           lastAlbumStation = metalinebf + 1;
         }
@@ -2532,21 +2534,22 @@ bool handleID3 (String& path)
     // no need to scan for ID3 tags, we get it from mediaserver
     if (soapList[currentIndex].artist.length()) {            // artist can be missing
       artttl = soapList[currentIndex].artist;
-      artttl += String("\n");                                // Add newline
+      artttl += String("\n");                                // add newline
       dbgprint("SOAP TPE1 = %s", soapList[currentIndex].artist.c_str());
     }
     artttl += soapList[currentIndex].name;
     dbgprint("SOAP TIT2 = %s", soapList[currentIndex].name.c_str());
-    if (soapList[currentIndex].album.length()) {            // album can be missing
+    if (soapList[currentIndex].album.length()) {             // album can be missing
       lastAlbumStation = soapList[currentIndex].album;
       dbgprint("SOAP TALB = %s", soapList[currentIndex].album.c_str());
     }
   }
 #endif  
+
   if (artttl.length()) lastArtistSong = artttl;
-  if (encoderMode != SELECT) {                             // Don't disturb selecting SD tracks
+  if (encoderMode != SELECT) {                               // don't disturb selecting SD tracks
     tftset(1, lastArtistSong);                               // Show artist and title
-    tftset(3, lastAlbumStation  );                           // Yes, show album
+    tftset(3, lastAlbumStation  );                           // show album
   }    
   return true;
 }
@@ -4284,8 +4287,8 @@ void checkEncoderAndButtons()
           tftset(1, lastArtistSong);
           tftset(3, lastAlbumStation);
           if (currentSource == SDCARD) 
-            forceProgressBar = true;                        // Got to be painted >>after<< section 3 or 4 is done
-          encoderMode = IDLING;                             // Return to IDLE mode
+            forceProgressBar = true;                        // got to be painted AFTER section 3 or 4 is done
+          encoderMode = IDLING;                             // return to IDLE mode
         }
       }
     }
@@ -4684,15 +4687,21 @@ void checkEncoderAndButtons()
         }
         else {
           // try to enter selected directory
-          if ((inx = firstSDindexInDir (enc_nodeIndex)) != enc_nodeIndex) {
+          if ((inx = firstSDindexInDir(enc_nodeIndex)) != enc_nodeIndex) {
             // directory contains entries (files or dirs)
             enc_dirIndex = enc_nodeIndex;
             enc_nodeIndex = inx;                               // new current index
             tmp = mp3nodeList[inx].name;
-            if (mp3nodeList[inx].isDirectory)
-              tftset(2, tmp);                                // show directories in red
-            else
+            if (mp3nodeList[inx].isDirectory) {
+              tftset(2, tmp);                                // show directories in yellow
+            }  
+            else {
+              if ((inx = tmp.indexOf(".mp3")) > 0 ||
+                  (inx = tmp.indexOf(".MP3")) > 0) {
+                tmp = tmp.substring(0, inx);                 // remove file extension
+              }
               tftset(1, tmp);                                // show files in cyan
+            }
           }
         }
       }
@@ -4718,10 +4727,16 @@ void checkEncoderAndButtons()
                 soapChain.push_back(tmpId);                        // to find our way back up          
                 enc_nodeIndex = 0;                                 // first entry on that level 
                 tmp = soapList[enc_nodeIndex].name;
-                if (soapList[enc_nodeIndex].isDirectory)
+                if (soapList[enc_nodeIndex].isDirectory) {
                   tftset(2, tmp);                                  // show directories in yellow
-                else
+                }
+                else {
+                  if ((inx = tmp.indexOf(".mp3")) > 0 ||
+                      (inx = tmp.indexOf(".MP3")) > 0) {
+                    tmp = tmp.substring(0, inx);                   // remove extension (if any)
+                  }
                   tftset(1, tmp);                                  // show files in cyan
+                }
               }
               else {
                 // strange error: container should contain elements but browse list is empty
@@ -4824,19 +4839,16 @@ void checkEncoderAndButtons()
       dbgprint("Encoder mode set to SELECT");
       tftset(4, "Turn to select station.\n"                // Show current option
                "Press to confirm.");
-      //enc_preset = ini_block.newpreset + 1;              // Different behaviours
-      //enc_preset = 0;
       if (currentPreset >= 0 && currentPreset <= highestPreset)
         enc_preset = currentPreset;
       else
         enc_preset = 0;
-      tmp = readhostfrompref(enc_preset);                  // Get host spec and possible comment
+      tmp = readhostfrompref(enc_preset);                  // get host spec and possible comment
       // Show just comment if available.  Otherwise the preset itself.
-      inx = tmp.indexOf("#");                              // Get position of "#"
-      if (inx > 0) {                                       // Hash sign present?
-        tmp.remove(0, inx + 1);                            // Yes, remove non-comment part
+      if ((inx = tmp.indexOf("#")) > 0) {                  // hash sign present?
+        tmp.remove(0, inx + 1);                            // remove non-comment part
       }
-      chomp(tmp);                                          // Remove garbage from description
+      chomp(tmp);                                          // remove garbage from description
       dbgprint("Selected station is %d, %s", enc_preset, tmp.c_str());
       tftset(2, tmp);                                      // Set screen segment
     }
@@ -4852,21 +4864,20 @@ void checkEncoderAndButtons()
         enc_preset = highestPreset;                          // from 0 to highest preset
       }
       else {
-        enc_preset += rotationcount;                         // Next preset
+        enc_preset += rotationcount;                         // next preset
       }
-      tmp = readhostfrompref (enc_preset);                   // Get host spec and possible comment
-      if (tmp == "") {                                       // End of presets?
-        enc_preset = 0;                                      // Yes, wrap
-        tmp = readhostfrompref (enc_preset);                 // Get host spec and possible comment
+      tmp = readhostfrompref (enc_preset);                   // get host spec and possible comment
+      if (tmp == "") {                                       // end of presets?
+        enc_preset = 0;                                      // wrap
+        tmp = readhostfrompref (enc_preset);                 // get host spec and possible comment
       }
       // Show just comment if available.  Otherwise the preset itself.
-      inx = tmp.indexOf("#");                                // Get position of "#"
-      if (inx > 0) {                                         // Hash sign present?
-        tmp.remove (0, inx + 1);                             // Yes, remove non-comment part
+      if ((inx = tmp.indexOf("#")) > 0) {                    // hash sign present?
+        tmp.remove (0, inx + 1);                             // remove non-comment part
       }
-      chomp(tmp);                                            // Remove garbage from description
+      chomp(tmp);                                            // remove garbage from description
       dbgprint("Selected station is %d, %s", enc_preset, tmp.c_str());
-      tftset(2, tmp);                                        // Set screen segment
+      tftset(2, tmp);                                        // set screen segment
     }
     else if (playMode == SDCARD) {
       if (!mp3nodeList[enc_nodeIndex].isDirectory && noSubDirInSameDir(enc_nodeIndex))
@@ -4877,10 +4888,16 @@ void checkEncoderAndButtons()
         enc_nodeIndex = nextSDindexInSameDir (enc_nodeIndex, rotationcount);
       enc_dirIndex = mp3nodeList[enc_nodeIndex].parentDir;
       tmp = mp3nodeList[enc_nodeIndex].name;
-      if (mp3nodeList[enc_nodeIndex].isDirectory)
+      if (mp3nodeList[enc_nodeIndex].isDirectory) {
         tftset(2, tmp);
-      else
+      }
+      else {
+        if ((inx = tmp.indexOf(".mp3")) > 0 ||
+            (inx = tmp.indexOf(".MP3")) > 0) {
+          tmp = tmp.substring(0, inx);
+        }
         tftset(1, tmp);
+      }
     }
 #ifdef ENABLE_SOAP      
     else { // playMode == MEDIASERVER
@@ -5356,19 +5373,19 @@ void mp3loop()
     else
       currentSource = STATION;
     
-    if (currentSource == SDCARD) {                         // Play file from SD card?
+    if (currentSource == SDCARD) {                         // play file from SD card?
       muteFlag = 15;
       playMode = SDCARD;
       mp3fileJumpForward = false;
       mp3fileJumpBack = false;
-      if (connecttofile()) {                               // Yes, open mp3-file
-        dataMode = DATA;                                   // Start in DATA mode
+      if (connecttofile()) {                               // open mp3-file
+        dataMode = DATA;                                   // start in DATA mode
         dbgprint("mp3loop: connecttofile() returns ok, dataMode=DATA");
       }
       else {
         SD_okay = false;
         currentIndex = -1;
-        dataMode = STOPPED;                                // Error happened by opening file on SD
+        dataMode = STOPPED;                                // error happened by opening file on SD
         currentSource = NONE;
         host = "";
         dbgprint("mp3loop: connecttofile() returned error");
@@ -5413,11 +5430,13 @@ void mp3loop()
         currentSource = NONE;
         host = "";
         tftset(4, "Error retrieving file.");
-        dbgprint("readStart(\"%s\") returned error", host.substring(5).c_str());
+        dbgprint("readStart(%s:%d/%s) returned error", 
+                 hostObject.downloadIp.toString().c_str(), hostObject.downloadPort, hostObject.uri.c_str());
       }
       else {
         mp3fileBytesLeft = mp3fileLength;                  // file length as reported from media server
-        dbgprint("readStart(\"%s\") successful", host.substring(5).c_str());
+        dbgprint("readStart(%s:%d/%s) successful", 
+                 hostObject.downloadIp.toString().c_str(), hostObject.downloadPort, hostObject.uri.c_str());
         if (handleID3(host)) {                             // check for ID3 tags
           dataMode = DATA;                                 // Start in DATA mode
           icyname = "";                                    // No icy name yet
@@ -6825,13 +6844,13 @@ void displayTime(const char* str, uint16_t color)
   if (tft) {                                      // TFT active?
     dsp_setTextColor(color);                      // Set the requested color
     for (i = 0; i < 5; i++) {                     // Compare old and new
-      if (str[i] != oldstr[i]) {                  // Difference?
+      if (str[i] != oldstr[i]) {                  // any change ?
         //dbgprint("displayTime(): fillRect: x=%d y=%d w=%d h=%d col=BLACK",
         //           pos, 0, 6, 8);
         dsp_fillRect(pos, 0, 6, 8, BLACK);        // Clear the space for new character
         dsp_setCursor(pos, 0);                    // Prepare to show the info
-        dsp_print(str[i]);                        // Show the character
-        oldstr[i] = str[i];                       // Remember for next compare
+        dsp_print(str[i]);                        // show the character
+        oldstr[i] = str[i];                       // remember for next compare
       }
       pos += 6;                                   // next position
     }
@@ -6841,24 +6860,17 @@ void displayTime(const char* str, uint16_t color)
 //**************************************************************************************************
 //                                     L I M I T S T R I N G                                       *
 //**************************************************************************************************
-// Reduce string to a length that will fit into num lines on the screen. The calculation considers *
-// the actual font size. Num will only be 2 or 4 in reality.                                       *
+// Reduce string to a length that it's hight will fit into num pixels on the screen. The calcu-    *
+// lation considers the actual font size.                                                          *
 //**************************************************************************************************
-String limitString(String &strg, int num) {
-  int16_t  x = 0, y = 0, limit = 32;
+String limitString(String& strg, int maxPixel) {
+  int16_t  x = 0, y = 0;
   uint16_t w = 0, h = 0;
 
-  if (num <= 2 && strg.length() > 43) {            // rudimentary line limiting to save time
-    strg = strg.substring(0, 43);                  // strg.setCharAt(i,'\0') doesn't change length() !!
-  }
-  else if (num <= 4 && strg.length() > 86) {
-    strg = strg.substring(0, 86);
-    limit = 64;
-  }
-  while (strg.length() > limit) {
+  while (strg.length() > 32) {
     dsp_getTextBounds(strg, 0, 0, &x, &y, &w, &h);
-    if (h < ((num + 1) * abs(y))) break;           // it fits into num lines on the display
-    strg = strg.substring(0, strg.length() - 1);   // cut 1 byte off at the end
+    if (h <= maxPixel) break;
+    strg = strg.substring(0, strg.length() - 1); // cut 1 byte off at the end
   }
   strg.trim();
   return strg;
@@ -6873,73 +6885,62 @@ String limitString(String &strg, int num) {
 //**************************************************************************************************
 void displayinfo(uint16_t inx)
 {
-  uint16_t width = dsp_getwidth();                      // normal number of colums
-  scrseg_struct* p = &tftdata[inx];
-  //uint16_t len;                                       // Length of string, later buffer length
+  scrseg_struct *p = &tftdata[inx];
+  uint16_t width = dsp_getwidth(),                      // normal number of colums
+           len = p->str.length();
   int8_t   i;
   String   strg;
 
-  if (tft) {                                            // TFT active?
-    if (inx == 0) {                                     // Topline is shorter
-      width += SDSTATUSPOS;                             // Leave space for flags + time
+  if (tft && len > 0) {                                 // any action required ?
+    if (inx == 0) {                                     // topline is shorter
+      width += SDSTATUSPOS;                             // leave space for flags + time
     }
     //dbgprint("displayinfo(%d): fillRect: x=%d y=%d w=%d h=%d col=BLACK",
     //           inx, 0, p->y, width, p->height);
-    dsp_fillRect(0, p->y, width, p->height, BLACK);     // Clear the space for new info
-    if ((dsp_getheight() > 64) && (p->y > 1)) {         // Need any space for divider?
+    dsp_fillRect(0, p->y, width, p->height, BLACK);     // clear the space for new info
+    if ((dsp_getheight() > 64) && (p->y > 1)) {         // need any space for divider?
       //dbgprint("displayinfo(): fillRect: x=%d y=%d w=%d h=%d col=GREEN",
       //           0, p->y - 1, width, 1);
-      dsp_fillRect(0, p->y - 1, width, 1, GREEN);       // Yes, show divider above text
+      dsp_fillRect(0, p->y - 1, width, 1, GREEN);       // generate divider between segment 0 and 1/2
     }
-    uint16_t len = p->str.length();                     // Required length of buffer
-    if (len++) {                                        // Check string length, set buffer length
-      char buf[len];                                    // Need some buffer space
-      dsp_setTextColor(p->color);                       // Set the requested color
-      if (inx == 1 || inx == 2) {                       // Name on 1. line, Title on 2. line (if 2 lines)
-        dsp_setFontBig();
-        dsp_setCursor(0, p->y + 18);                    // Set cursor for first line for big font
-        i = p->str.indexOf('\n');                       // Find position of CR (separates the line)
-        if (i > 0) {                                    // 2 lines ?
-          // Processing first line
-          strg = p->str.substring(0, i);                // extract first line
-          strg = limitString(strg);                     // make sure it fits into 2 lines on the display
-          strg.toCharArray(buf, len);                   // Make a local copy of the string
-          utf8ascii(buf);                               // Convert possible UTF8
-          dsp_print(buf);                               // Show the string on TFT
-          dsp_fillRect(0, p->y + 43, width, 1, YELLOW); // Yes, show divider above text
-          //dbgprint("displayinfo(): fillRect: x=%d y=%d w=%d h=%d col=YELLOW",
-          //           0, p->y + 43, width, 1);
-          // Processing second line
-          dsp_setCursor(0, p->y + 62);                  // Set cursor for second line for big font
-          strg = p->str.substring(i + 1);               // extract second line
-          strg = limitString(strg);                     // make sure it fits into 2 lines on the display
-          strg.toCharArray(buf, len);                   // Make a local copy of the string
-          utf8ascii(buf);                               // Convert possible UTF8
-          dsp_print(buf);                               // Show the string on TFT
-        }
-        else {                                          // just one line
-          // got to fit into 4 lines on display
-          strg = p->str;
-          strg = limitString(strg, 4);                  // make sure it fits into 4 lines on the display
-          strg.toCharArray(buf, len);                   // Make a local copy of the string
-          utf8ascii(buf);                               // Convert possible UTF8
-          dsp_print(buf);                               // Show the string on TFT
-        }
-        dsp_setFont();                                  // back to normal font
+
+    p->str = utf8ascii(p->str.c_str());                 // convert possible UTF8 chars
+    dsp_setTextColor(p->color);                         // set requested color
+    if (inx == 1 || inx == 2) {                         // name on 1. line, Title on 2. line (if 2 lines)
+      dsp_setFontBig();
+      dsp_setCursor(0, p->y + 18);                      // set cursor for first line for big font
+      i = p->str.indexOf('\n');                         // find position of CR (separates the line)
+      if (i > 0) {                                      // separate segments ?
+        // Processing first line
+        strg = p->str.substring(0, i);                  // extract first line
+        strg = limitString(strg, (p->height / 2) - 2 ); // make sure it fits into 2 lines on the display
+        dsp_print(strg.c_str());                        // show the string on TFT
+        // show divider in the middle of segment
+        dsp_fillRect(0, p->y + (p->height / 2), width, 1, YELLOW);
+        // Processing second line
+        dsp_setCursor(0, p->y + 62);                    // set cursor for second line for big font
+        strg = p->str.substring(i + 1);                 // extract second line
+        strg = limitString(strg, (p->height / 2) - 2);  // make sure it fits into 2 lines on the display
+        dsp_print(strg.c_str());                               // show the string on TFT
       }
-      else {                                            // segments 0, 3 or 4
-        if (inx == 3 || inx == 4) {                     // segment at bottom
-          unsigned int len = (currentSource != STATION) ? 53 : 72;// in radio mode is room for third line
-          if (p->str.length() > len) p->str.setCharAt(len, '\0'); // rudimentary line limiting
-        }
-        p->str.toCharArray(buf, len);                   // Make a local copy of the string
-        utf8ascii(buf);                                 // Convert possible UTF8
-        if (inx == 0)
-          dsp_setCursor(0, p->y);                       // Prepare to show the info on top line
-        else
-          dsp_setCursor(0, p->y + 4);                   // Prepare to show the info on bottom line
-        dsp_print(buf);                                 // Show the string on TFT
+      else {                                            // just one line
+        // got to fit into 4 lines on display
+        strg = p->str;
+        strg = limitString(strg, p->height - 2);        // make sure it fits into 4 lines on the display
+        dsp_print(strg.c_str());                        // show string on TFT
       }
+      dsp_setFont();                                    // back to normal font
+    }
+    else {                                              // segments 0, 3 or 4
+      if (inx == 3 || inx == 4) {                       // segment at bottom
+        unsigned int len = (currentSource != STATION) ? 53 : 72;// in radio mode is room for third line
+        if (p->str.length() > len) p->str.setCharAt(len, '\0'); // rudimentary line limiting
+      }
+      if (inx == 0)
+        dsp_setCursor(0, p->y);                         // prepare to show the info on top line
+      else
+        dsp_setCursor(0, p->y + 4);                     // prepare to show the info on bottom line
+      dsp_print(p->str.c_str());                        // show the string on TFT
     }
   }
 }
@@ -7069,15 +7070,15 @@ void getTime()
 //**************************************************************************************************
 bool handle_tft_txt()
 {
-  for (uint16_t i = 0; i < TFTSECS; i++) {              // Handle all sections
-    if (tftdata[i].update_req) {                        // Refresh requested?
-      displayinfo(i);                                   // Yes, do the refresh
-      dsp_update();                                     // Updates to the screen
-      tftdata[i].update_req = false;                    // Reset request
-      return true;                                      // Just handle 1 request
+  for (uint16_t i = 0; i < TFTSECS; i++) {              // handle all sections
+    if (tftdata[i].update_req) {                        // refresh requested ?
+      displayinfo(i);                                   // do the refresh
+      dsp_update();                                     // send updates to the screen
+      tftdata[i].update_req = false;                    // reset request
+      return true;                                      // handle only 1 request at a time
     }
   }
-  return false;                                         // Not a single request
+  return false;                                         // no request was pending
 }
 
 //**************************************************************************************************
