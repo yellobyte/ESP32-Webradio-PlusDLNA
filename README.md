@@ -86,6 +86,3 @@ The following sample picture sequence shows the actual implementation into this 
 
 Alternatively have a look at the short clip _ESP32-Radio-DLNA.mp4_ in folder **Doc** to see the final implementation in action. To watch now, click [Here](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Doc/ESP32-Radio-DLNA.mp4).
 
-## :clap:  Supporters
-
-[![Stargazers repo roster for @yellobyte/ESP32-Webradio-PlusDLNA](https://reporoster.com/stars/yellobyte/ESP32-Webradio-PlusDLNA)](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/stargazers)  
