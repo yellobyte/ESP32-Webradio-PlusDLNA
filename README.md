@@ -13,22 +13,22 @@ And since the whole project now resides in a 43cm wide, old but still stylish **
 
 Starting from Ed's code (Version 10.06.2018) this **ESP32 Webradio++** project has seen a lot of additions and modifications over time. Here a summary:
 
- * integration of [SoapESP32](https://github.com/yellobyte/SoapESP32) library
- * Digital audio output added (TOSLINK optical) using a WM8805 module (Aliexpress)
+ * integration of [SoapESP32](https://github.com/yellobyte/SoapESP32) library for DLNA media server access
+ * Digital audio output added (TOSLINK optical) using a WM8805 module from Aliexpress
  * Usage of own VS1053 decoder board (with I2S output and w/o 3.5mm audio sockets)<br />
    -> You find the Eagle schematic & board files [here](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/tree/main/EagleFiles).
  * VS1053 gets patched with new firmware v2.7 at each reboot<br />
    -> Latest firmware patches for the VLSI VS1053 are available from [here](http://www.vlsi.fi/en/support/software/vs10xxpatches.html).
  * VU meter added on TFT display (needs above mentioned firmware patch)
- * Debug Server on port 23 for debug output (when compiled in than the cmd server is omitted)
+ * Usage of W5500 Ethernet module instead of ESP32 builtin WiFi
+ * option to use a Debug Server on port 23 for debug output (in this case the cmd server is disabled due to Ethernet socket shortage)
  * Handling of original TECHNICS Tuner ST-G570 front panel buttons & LEDs via I2C and extender module
  * SD card indexing code rewritten in large parts
- * Usage of W5500 Ethernet module instead of builtin WiFi
  * Ability to update ESP32 Radio code via SD card (using OTA functionality during reboot)
- * Encoder debouncing done completely in hardware (RC + Schmitt-Trigger IC), we use a Stec Rotary Encoder STEC11B03 with 1 impulse per 2 clicks
+ * Encoder debouncing done completely in hardware (RC + Schmitt-Trigger IC), a Stec Rotary Encoder STEC11B03 with 1 impulse per 2 clicks is used
  * MP3 progress bar while playing audio
  * MQTT functionality & battery stuff removed completely
- * handling of more special chars in webradio streams (some channels seems to have a different utf8 conversion table or philosophy)
+ * handling of more special chars in webradio streams (some radio channels seem to have different utf8 conversion tables)
  * countless minor changes, some bugfixing
  * regular modifications if required for building with new espressif32 framework releases   
 
@@ -36,11 +36,12 @@ If interested, have a look at "Revision history.txt" in the doc folder.
 
 ## :zap: Application notes
 
-All Coding was done with **VSCode/PlatformIO-IDE**. To install needed libraries (Ethernet, SoapESP32, etc.) click the **platformio sidebar icon**, open the **libraries** view and search for libs. Once found, select the newest release and click on **Add to Project**.
+All Coding was done with **VSCode/PlatformIO-IDE**. To install needed libraries (Ethernet, SoapESP32, etc.) click the **PlatformIO sidebar icon**, open the **libraries** view and search for libs. Once found, select the newest release and click on **Add to Project**.
 
 Always make sure you have one of the latest versions of **Arduino espressif32 framework** installed. Older versions might produce build errors. Building the project was successfully done with latest espressif32 frameworks V4.2.0 and V5.0.0. Have a look at file [platformio.ini](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Software/platformio.ini) for required settings.
 
-If you want to use a Wiznet W5500 Ethernet card/shield and build with options `ENABLE_CMDSERVER` or `PORT23_ACTIVE` then you will get a build error like this:  
+**Important:**  
+If you a) use a Wiznet W5500 Ethernet card/shield **and** b) build with options `ENABLE_CMDSERVER` or `PORT23_ACTIVE` you will get a build error like this:  
 ```
 src\main.cpp:394:19: error: cannot declare variable 'cmdserver' to be of abstract type 'EthernetServer'
  EthernetServer    cmdserver(80);                         // Instance of embedded webserver, port 80
