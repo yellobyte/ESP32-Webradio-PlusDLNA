@@ -36,9 +36,7 @@ If interested, have a look at "Revision history.txt" in the doc folder.
 
 ## :zap: Application notes
 
-To install needed libraries (Ethernet, SoapESP32, etc.) do the following:
-
-In **VSCode/PlatformIO** click the **platformio sidebar icon**, open the **libraries** view and search for libs. Once found, select the newest release and click on **Add to Project**.
+All Coding was done with **VSCode/PlatformIO-IDE**. To install needed libraries (Ethernet, SoapESP32, etc.) click the **platformio sidebar icon**, open the **libraries** view and search for libs. Once found, select the newest release and click on **Add to Project**.
 
 Always make sure you have one of the latest versions of **Arduino espressif32 framework** installed. Older versions might produce build errors. Building the project was successfully done with latest espressif32 frameworks V4.2.0 and V5.0.0. Have a look at file [platformio.ini](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Software/platformio.ini) for required settings.
 
@@ -51,7 +49,7 @@ In file included from C:\users\tj\.platformio\packages\framework-arduinoespressi
 C:\users\tj\.platformio\packages\framework-arduinoespressif32\cores\esp32/Server.h:28:18: note:         virtual void Server::begin(uint16_t)
      virtual void begin(uint16_t port=0) =0;
 ```
-In this case you need to modify by hand two files in the Ethernet lib:  
+Only in this case you need to modify by hand two files in the Ethernet lib:  
 - In _Ethernet.h_ add one line as shown below:  
 ```
 class EthernetServer : public Server {
