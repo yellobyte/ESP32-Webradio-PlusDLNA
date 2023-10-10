@@ -1,6 +1,6 @@
 # ESP32 Webradio++
 
-This ESP32 internet radio implementation is based on Ed Smallenburgs (ed@smallenburg.nl) original ESP32 Radio project, version 10.06.2018. His still active project is documented at https://github.com/Edzelf/ESP32-radio.
+This ESP32 internet radio implementation is partially based on Ed Smallenburgs (ed@smallenburg.nl) original ESP32 Radio project, version 10.06.2018. His still active project is documented at https://github.com/Edzelf/ESP32-radio.
 
 The device not only plays internet radio streams and audio files from SD cards. It can also **play audio content from DLNA media servers** in the same LAN. The Arduino library [**SoapESP32**](https://github.com/yellobyte/SoapESP32) enables it to connect to DLNA media servers in the local network, browse their content and download selected files. The lib makes coding this feature fairly easy: After selecting a track (audio file) from the list returned by *browseServer()*, the device sends a read request to the media server using *readStart()* and if granted, will repeatedly *read()* a chunk of data into the queue which feeds the audio codec VS1053B until end of file. Then the data connection to the server is closed with *readStop()* and the next audio file from the list is selected automatically, provided the 'repeat file/folder' mode is active.  
 
