@@ -27,6 +27,7 @@ Starting from Ed's code (Version 10.06.2018) this **ESP32 Webradio++** project h
  * Ability to update ESP32 Radio code via SD card (using OTA functionality during reboot)
  * Encoder debouncing done completely in hardware (RC + Schmitt-Trigger IC), a Stec Rotary Encoder STEC11B03 with 1 impulse per 2 clicks is used
  * MP3 progress bar while playing audio
+ * minor modification to get an unspecified Ali 21-button remote control working
  * MQTT functionality & battery stuff removed completely
  * handling of more special chars in webradio streams (some radio channels seem to have different utf8 conversion tables)
  * countless minor changes, some bugfixing
