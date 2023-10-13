@@ -22,7 +22,7 @@ The original stereo audio output socket and the power input socket were harveste
 
 ![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/raw/main/Doc/Open%20Case%202.jpg)
 
-During the early stages of the project a lot of software updates were required and they were all done via USB cable between ESP32-module and PC. However, at some stage the case got put back into the HiFi rack and re-opening the case now and then for a quick software update became a real pain in the butt. Hence the possibility to perform an ESP32 firmware update via SD-Card was added.
+During the early stages of the project a lot of software updates were required and all were done via USB cable between ESP32-module and PC. However, at some stage the case got put back into the HiFi rack and re-opening the case now and then for a quick software update became a real pain in the butt. Hence the possibility to perform an ESP32 firmware update via SD-Card was added.
 
 ## :gift: Feature list ##
 
