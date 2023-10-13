@@ -4,14 +4,19 @@ This ESP32 internet radio implementation is partially based on Ed Smallenburgs (
 
 The device not only plays internet radio streams and audio files from SD cards but also **audio content from DLNA media servers** in the same LAN. The Arduino library [**SoapESP32**](https://github.com/yellobyte/SoapESP32) enables it to connect to DLNA media servers in the local network, browse their content and download selected files. The lib makes implementing this feature fairly easy: After selecting a track (audio file) from the list returned by *browseServer()*, the device sends a read request to the media server using *readStart()* and if granted, will repeatedly *read()* a chunk of data into the queue which feeds the audio codec VS1053B until end of file. Then the data connection to the server is closed with *readStop()* and the next audio file from the list is selected automatically, provided the 'repeat file/folder' mode is active.  
 
-Using a rotary switch encoder is all it needs to browse through the content of a DLNA media server. Going up and down the directory levels and finally selecting an audio file for playing is done very fast with it.
-And since the whole project now resides in a 43cm wide, old but still stylish **TECHNICS Tuner ST-G570 case** which I was always very fond of and reluctant to throw away, the original rotary knob could luckily get utilized for exact this feature.
+Using a rotary switch encoder is all it needs to browse through the list of pre-configured web radio stations, the content of the SD-Card or a DLNA media server. Going up and down the directory levels and finally selecting an audio file for playing is done very fast with it. And since the whole project now resides in a 43cm wide, pretty old but still stylish **TECHNICS Tuner ST-G570** case, the original rotary knob could luckily get utilized for exact this feature.
+
+The original display (rendered useless) has been removed and it's cover now hides the infrared sensor for the remote control. A small TFT display has been added to the front and is used for interacting with the user and presenting some essential data.  
+
+Most of the original front buttons are still usable, now for changing modes (Radio/SD/DLNA), skipping tracks etc. Two adjacent buttons just below the TFT display went into the bin and made room for a SD-Card reader. The existing 10 channel buttons (1...8,9,0) still serve their original purpose, only this time with web radio stations assigned.
+
+Audio amplifiers can be connected via the original audio output socket or even TOSLINK optical cable for better sound quality. Well, going digital is probably not needed for web radio stations, as their stream bit rates usually top 128kbps and very rarely 192kbps.
 
 ![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/raw/main/Doc/ESP32-Radio%20Front2.jpg)
 
 ## :gift: Feature list ##
 
-Starting from Ed's code (Version 10.06.2018) this **ESP32 Webradio++** project has seen a lot of additions and modifications over time. Here a summary:
+Starting from Ed Smallenburg's code (Version 10.06.2018) this **ESP32 Webradio++** project has seen a lot of additions and modifications over time. Here a summary:
 
  * integration of [SoapESP32](https://github.com/yellobyte/SoapESP32) library for DLNA media server access
  * Digital audio output added (TOSLINK optical) using a WM8805 module from Aliexpress
