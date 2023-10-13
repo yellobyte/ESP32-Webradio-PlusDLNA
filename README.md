@@ -12,7 +12,7 @@ The original display (rendered useless) has been removed and it's plexiglass cov
 
 Most of the original front buttons are still available, now for changing modes (Radio/SD/DLNA), skipping tracks etc. Two adjacent buttons just below the TFT display went into the bin and made room for a SD-Card reader. The existing 10 channel buttons (1...8,9,0) still serve their original purpose, only this time with web radio stations assigned.
 
-A needed audio amplifier can be connected via the original audio output socket or even TOSLINK optical cable for better sound quality. Well, going digital is probably not needed for web radio stations, as their stream bit rates usually top 128kbps and very rarely 192kbps.
+A needed audio amplifier can be connected via the original audio output socket or even TOSLINK optical cable for better sound quality. Well, going digital at the output is probably not needed for web radio stations, as their stream bit rates usually only top 128kbps and very rarely 192kbps.
 
 ![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/raw/main/Doc/ESP32-Radio%20Front2.jpg)
 
