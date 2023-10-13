@@ -22,9 +22,9 @@ The original stereo audio output socket and the power input socket were harveste
 
 ![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/raw/main/Doc/Open%20Case%202.jpg)
 
-During the early stages of the project a lot of software updates were required and all were done via USB cable between ESP32-module and PC. However, at some stage the case got put back into the HiFi rack and re-opening the case now and then for a quick software update became a real pain in the butt. Hence the possibility to perform an ESP32 firmware update via SD-Card was added.
+During the early stages of the project a lot of software updates were required and all were done via USB cable between ESP32-module and PC. However, at some stage the device got put back into the HiFi rack and re-opening the case now and then for a quick software update became a real pain in the butt. Hence the possibility to perform an ESP32 firmware update via SD-Card was added.
 
-## :gift: Feature list ##
+## :gift: Feature list
 
 Starting from Ed Smallenburg's code (Version 10.06.2018) this **ESP32 Webradio++** project has seen a lot of additions and modifications over time. Here a summary:
 
@@ -90,7 +90,7 @@ void EthernetServer::begin(uint16_t port)
 }
 ```
 
-## :tada: Implementation of SoapESP32 library for DLNA server access ##
+## :tada: Implementation of SoapESP32 library for DLNA server access
 
 The lib makes playing audio files from media servers fairly easy: Function *browseServer()* is used to scan the server content and return a list of tracks (audio files). The device then selects an item and sends a read request to the media server using *readStart()*. If granted, it will repeatedly *read()* a chunk of data into the queue which feeds the audio codec VS1053B until end of file. Finally the data connection to the server is closed with *readStop()* and the next audio file from the list is requested, provided the 'repeat file/folder' mode is active.  
 
@@ -100,7 +100,11 @@ The following sample picture sequence shows the actual implementation into this 
 
 Alternatively have a look at the short clip _ESP32-Radio-DLNA.mp4_ in folder **Doc** to see the final implementation in action. To watch now, click [Here](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Doc/ESP32-Radio-DLNA.mp4).
 
-## Still to be done: ##
+## :hammer_and_wrench: Still to be done:
 
  * Enable the Webinterface to browse DLNA media servers and select audio files for playing.
+
+## :relaxed: Postscript:
+
+If you have questions or suggestions, feel free to contact me. However, my response times might be slow. 
 
