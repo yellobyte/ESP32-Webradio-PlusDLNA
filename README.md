@@ -16,7 +16,7 @@ A needed audio amplifier can be connected via the original audio output socket o
 
 ![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/raw/main/Doc/ESP32-Radio%20Front2.jpg)
 
-As for now, the device consists of several seperate modules/PCBs. Three modules (ESP32, WM8805 TOSLINK, W5500 Ethernet) were bought from Aliexpress and the other four modules (power supply, mainboard, VS1053B decoder, front extender) were designed with EAGLE Layout program and ordered from JLCPCB/PCBWay. All relevant EAGLE project files are available [here](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/tree/main/EagleFiles).  
+As for now, the device consists of several separate modules/PCBs. Three modules (ESP32, WM8805 TOSLINK, W5500 Ethernet) were bought from Aliexpress and the other four modules (power supply, mainboard, VS1053B decoder, front extender) were designed with EAGLE Layout program and ordered from JLCPCB/PCBWay. All relevant EAGLE project files are available [here](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/tree/main/EagleFiles).  
 
 The original stereo audio output socket and the power input socket were harvested from the old original FM tuner PCBs and re-used.  The VS1053B encoder module provides an I2S output which is necessary to forward the digital audio data from the decoder to the WM8805 TOSLINK module. 
 
