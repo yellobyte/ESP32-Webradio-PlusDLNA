@@ -2,7 +2,7 @@
 
 **Remark:** This ESP32 internet radio implementation is partially based on Ed Smallenburgs (ed@smallenburg.nl) original ESP32 Radio project, version 10.06.2018. His still active & very popular project is documented at [ESP32-radio](https://github.com/Edzelf/ESP32-radio).  
 
-My much loved 1991's FM Tuner **TECHNICS Tuner ST-G570** was becoming obsolete and useless (at least for me) when I couldn't listen to my favourite FM radio stations anymore after moving abroad. Since I didn't want to part with the device, the decision was made to give it a second life: housing an internet radio with lots of additional features.  
+My much loved 1991's FM Tuner **TECHNICS Tuner ST-G570** became obsolete and useless (at least for me) when I couldn't listen to my favourite FM radio stations anymore after moving abroad. Since I didn't want to part with the device, the decision was made to give it a second life: housing an internet radio with lots of additional features.  
 
 Now, after putting countless hours into the project, the device not only plays **internet radio streams** and audio files from **SD cards** but also **audio content from DLNA media servers** in the same LAN. The Arduino library [**SoapESP32**](https://github.com/yellobyte/SoapESP32) used for the latter feature enables any ESP32 based device to connect to DLNA media servers in the local network, browse their content and download selected files. The SoapESP32 lib is basically a byproduct of this project.   
 
