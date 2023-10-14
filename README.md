@@ -8,7 +8,7 @@ My much loved 1991's FM Tuner **TECHNICS Tuner ST-G570** became obsolete and use
 
 Now, after putting countless hours into the project, the device not only plays **internet radio streams** and audio files from **SD cards** but also **audio content from DLNA media servers** in the same LAN. The Arduino library **SoapESP32** has been created especially for the latter feature and enables any ESP32 based device to connect to DLNA media servers in the local network, browse their content and download selected files. It is basically a byproduct of this project and meanwhile became part of the Arduino library [collection](https://www.arduino.cc/reference/en/libraries/category/communication/).  
 
-The original encoder attached to the rotary knob of the Technics case has been replaced with a modern one (turn + push) and now the knob is used to browse through the list of pre-configured web radio stations, the content of SD cards or DLNA media servers storing thousands of audio files. Going up and down the directory levels and finally selecting an audio file for playing is done very fast with it.
+The original encoder attached to the rotary knob of the Technics case has been replaced with a modern one (Stec Rotary Encoder STEC11B03, 1 impulse per 2 clicks, turn + push) and now the knob is used to browse through the list of pre-configured web radio stations, the content of SD cards or DLNA media servers storing thousands of audio files. Going up and down the directory levels and finally selecting an audio file for playing is done very fast with it.
 
 The original display (rendered useless) has been removed and it's plexiglass cover now hides the infrared sensor which receives signals from a remote control. A small 1.8" TFT color display (Aliexpress) has been added to the front and is used for interacting with the user and presenting essential info.  
 
@@ -42,19 +42,19 @@ Starting from Ed Smallenburg's code (Version 10.06.2018) this **ESP32 Webradio++
    -> You find the Eagle schematic & board files [here](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/tree/main/EagleFiles).
  * VS1053 gets patched with new firmware v2.7 at each reboot<br />
    -> Latest firmware patches for the VLSI VS1053 are available from [here](http://www.vlsi.fi/en/support/software/vs10xxpatches.html).
- * VU meter added on TFT display (needs above mentioned firmware patch)
+ * VU meter added to TFT display (needs above mentioned firmware patch)
  * Usage of W5500 Ethernet module instead of ESP32 builtin WiFi
  * Option to use a Debug Server on port 23 for debug output (in this case the cmd server is disabled due to Ethernet socket shortage)
  * Handling of original TECHNICS Tuner ST-G570 front panel buttons & LEDs with the aid of an extender module (connected to ESP32 via I2C)
  * SD card indexing code rewritten in large parts
  * Ability to update ESP32 Radio code via SD card (using OTA functionality during reboot)
- * Encoder debouncing done completely in hardware (RC + Schmitt-Trigger IC), a Stec Rotary Encoder STEC11B03 with 1 impulse per 2 clicks is used
- * Track progress bar while playing audio
+ * New encoder fitted to rotary knob, debouncing is done completely in hardware (RC + Schmitt-Trigger ICs 74HC14)
+ * Track progress bar while playing audio files from SD card or media server
  * Minor modifications to get an unspecified Ali 21-button remote control working
  * MQTT functionality & battery stuff removed completely
  * Handling of more special chars in webradio streams (some radio channels seem to have different utf8 conversion tables)
- * Quicker handling of firmware crashes (shorter recovery/reboot time)
- * Countless minor changes, some bugfixing
+ * Quicker handling of (very rare) firmware crashes resulting in shorter recovery/reboot time
+ * Countless minor changes, adjustments, bugfixing
  * Regular modifications if required for building with new espressif32 framework releases   
 
 If interested, have a look at [Revision history.txt](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Doc/Revision%20history.txt) in the doc folder. 
