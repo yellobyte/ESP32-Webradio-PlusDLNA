@@ -22,7 +22,7 @@ A needed audio amplifier can be connected via analog audio output socket or even
 
 As for now, the device consists of several separate modules/PCBs. Three modules (ESP32, TOSLINK optical output, 10/100Mb Ethernet) were bought from Aliexpress and the other four modules (power supply, mainboard, VS1053B decoder, front extender) were especially designed for this project with EAGLE PCB Design & Layout tool. The PCBs were ordered unassembled from JLCPCB resp. PCBWay. All relevant EAGLE project files, schematics, board layouts etc. are available [here](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/tree/main/EagleFiles).  
 
-The original stereo audio output socket and the power input socket were harvested from the old original FM tuner PCBs and reused.  The VS1053B decoder module provides an I2S output which connects the decoder with the TOSLINK optical output module. 
+The original stereo audio output socket, the power input socket and the common mode choke were harvested from the original tuner PCBs and reused.  The VS1053B decoder module provides an I2S output which connects the decoder with the TOSLINK optical output module. 
 
 ![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/raw/main/Doc/Open%20Case%202.jpg)
 
