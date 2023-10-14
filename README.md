@@ -14,7 +14,7 @@ The original display (rendered useless) has been removed and it's plexiglass cov
 
 Most of the original front buttons are still available, now for changing modes (Radio/SD/DLNA), skipping tracks, returning to the higher directory level and repeat mode selection. Two adjacent buttons just below the TFT display went into the bin and made room for a SD-Card reader. The existing 10 channel buttons (1...8,9,0) still serve their original purpose, only this time with web radio stations assigned.  
 
-A special extender board sits between mainboard (connected via I2C) and original front PCB (connectors CP102, Pins 7-9 & CP103 Pins 1-8). Its many additional IO ports makes it possible to control LEDs and buttons via original control [matrix](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Doc/ST-G570%20Key%20Matrix%20Original.JPG).  A small infrared sensor for receiving commands from a remote control is attached to the extender board as well.
+A special extender board sits between mainboard (connected via I2C) and original front PCB (connectors CP102, Pins 7-9 and CP103, Pins 1-8). Its many additional IO ports makes it possible to control LEDs and buttons via original control [matrix](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Doc/ST-G570%20Key%20Matrix%20Original.JPG).  A small infrared sensor for receiving commands from a remote control is attached to the extender board as well.
 
 ![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/raw/main/Doc/Front%20PCB%20%2B%20Extender%20Board.jpg)
 
