@@ -48,7 +48,7 @@ Starting from Ed Smallenburg's code (Version 10.06.2018) this **ESP32 Webradio++
  * countless minor changes, some bugfixing
  * regular modifications if required for building with new espressif32 framework releases   
 
-If interested, have a look at "Revision history.txt" in the doc folder. 
+If interested, have a look at [Revision history.txt](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Doc/Revision%20history.txt) in the doc folder. 
 
 ## :zap: Application notes
 
