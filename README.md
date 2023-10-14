@@ -4,17 +4,21 @@
 
 My much loved 1991's FM Tuner **TECHNICS Tuner ST-G570** became obsolete and useless (at least for me) when I couldn't listen to my favourite FM radio stations anymore after moving abroad. Since I didn't want to part with the device, the decision was made to give it a second life: housing an internet radio with lots of additional features.  
 
+![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/raw/main/Doc/ESP32-Radio%20Front2.jpg)
+
 Now, after putting countless hours into the project, the device not only plays **internet radio streams** and audio files from **SD cards** but also **audio content from DLNA media servers** in the same LAN. The Arduino library **SoapESP32** has been created especially for the latter feature and enables any ESP32 based device to connect to DLNA media servers in the local network, browse their content and download selected files. It is basically a byproduct of this project and meanwhile became part of the Arduino library [collection](https://www.arduino.cc/reference/en/libraries/category/communication/).  
 
 The original encoder attached to the rotary knob of the Technics case has been replaced with a modern one (turn + push) and now the knob is used to browse through the list of pre-configured web radio stations, the content of SD-Cards or DLNA media servers storing thousands of audio files. Going up and down the directory levels and finally selecting an audio file for playing is done very fast with it.
 
 The original display (rendered useless) has been removed and it's plexiglass cover now hides the infrared sensor for the remote control. A small 1.8" TFT color display (Aliexpress) has been added to the front and is used for interacting with the user and presenting essential info.  
 
-Most of the original front buttons are still available, now for changing modes (Radio/SD/DLNA), skipping tracks, returning to the higher directory level and repeat mode selection. Two adjacent buttons just below the TFT display went into the bin and made room for a SD-Card reader. The existing 10 channel buttons (1...8,9,0) still serve their original purpose, only this time with web radio stations assigned. A special extender board sits between mainboard (connected via I2C) and original front PCB (connectors CP102, Pins 7-9 & CP103 Pins 1-8). Its many additional IO ports makes it possible to control LEDs and buttons via original control [matrix](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Doc/ST-G570%20Key%20Matrix%20Original.JPG)).
+Most of the original front buttons are still available, now for changing modes (Radio/SD/DLNA), skipping tracks, returning to the higher directory level and repeat mode selection. Two adjacent buttons just below the TFT display went into the bin and made room for a SD-Card reader. The existing 10 channel buttons (1...8,9,0) still serve their original purpose, only this time with web radio stations assigned.  
 
-A needed audio amplifier can be connected via the original audio output socket or even TOSLINK optical cable for better sound quality. Well, going digital at the output is probably not needed for web radio stations, as their stream bit rates usually range between 32...128kbps and very rarely top 192kbps.
+A special extender board sits between mainboard (connected via I2C) and original front PCB (connectors CP102, Pins 7-9 & CP103 Pins 1-8). Its many additional IO ports makes it possible to control LEDs and buttons via original control [matrix](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Doc/ST-G570%20Key%20Matrix%20Original.JPG).  A small infrared sensor for receiving commands from a remote control is attached to the extender board as well.
 
-![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/raw/main/Doc/ESP32-Radio%20Front2.jpg)
+![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/raw/main/Doc/Front%20PCB%20%2B%20Extender%20Board.jpg)
+
+A needed audio amplifier can be connected via the original audio output socket or even TOSLINK optical cable for better sound quality. Well, going digital at the output is probably not needed for web radio stations, as their stream bit rates usually range between 32...128kbps and very rarely top 192kbps.  
 
 As for now, the device consists of several separate modules/PCBs. Three modules (ESP32, TOSLINK optical output, 10/100Mb Ethernet) were bought from Aliexpress and the other four modules (power supply, mainboard, VS1053B decoder, front extender) were especially designed with EAGLE PCB Design & Layout tool. The PCBs were ordered unassembled from JLCPCB resp. PCBWay. All relevant EAGLE project files are available [here](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/tree/main/EagleFiles).  
 
