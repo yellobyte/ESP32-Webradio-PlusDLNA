@@ -24,7 +24,7 @@ The original stereo audio output socket and the power input socket were harveste
 
 During the early stages of the project a lot of software updates were required and all were done via USB cable between ESP32-module and PC. However, at some stage the device joined the HiFi rack again and re-opening the case now and then for a quick software update became a real pain in the butt. Hence the possibility to perform an ESP32 firmware update via SD-Card was added.
 
-Plenty of holes were drilled at the back of the case for better thermal management but they proved unneeded as the temps always stayed below 35 degs even with fully closed case.  
+Plenty of holes were drilled at the back of the case for better thermal management but they later proved unneeded as the temps inside the case always stayed below 35 degs even with the lid on and all holes covered.  
 
 If Ethernet is not wanted/possible than a small WLAN antenna attached with a short cable to the ESP32 WLAN-socket (I-PEX) would suffice. In that case I recommend to place the antenna directly behind the plexiglass cover for better receiption. Early tests with a WLAN router in 3m distance and fully closed case showed no issues with that arrangement.
 
