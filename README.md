@@ -136,5 +136,5 @@ Alternatively have a look at the short clip _ESP32-Radio-DLNA.mp4_ in folder **D
 
 Maybe this project can inspire one or two owners of old HiFi equipment to give their devices a second chance instead of tossing them into the scrap metal container. I spent a lot of time and efforts doing this project and wouldn't want to miss a second of it for I had lots of fun and learned much as well.  
 
-If you have questions, miss some information or have suggestions, feel free to contact me. However, my response times might be slow. 
+If you have questions, miss some information or have suggestions, feel free to create an issue or contact me. However, my response times might be slow. 
 
