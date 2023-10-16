@@ -50,7 +50,7 @@ A special extender board connects the mainboard with the original front PCB (CP1
 
 ![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/raw/main/Doc/Front%20PCB%20%2B%20Extender%20Board.jpg)
 
-A necessary audio amplifier can be connected via analog audio output socket or even TOSLINK optical cable for better sound quality. Well, going digital at the output is probably useless for web radio stations, as their stream bit rates mostly range between 32...128kbps and very rarely top 192kbps.  
+A necessary audio amplifier can be connected via the analog audio output or even the TOSLINK optical output for better sound quality. Well, going digital at the output is probably useless for web radio stations, as their stream bit rates mostly range between 32...128kbps and very rarely top 192kbps.  
 
 As for now, the device consists of several separate modules/PCBs. Three modules (ESP32, TOSLINK optical output, 10/100Mb Ethernet) were bought from various internet shops and the other four modules (power supply, mainboard, VS1053B decoder and front extender) were especially designed for this project with EAGLE PCB Design & Layout tool. The PCBs were ordered unassembled from various PCB prototype manufacturers in CN for little money. I did all the soldering myself, the decoder chip VS1053B in a tiny LQFP-48 package was a challange though. All relevant EAGLE project files, schematics, board layouts etc. are available [here](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/tree/main/EagleFiles).  
 
