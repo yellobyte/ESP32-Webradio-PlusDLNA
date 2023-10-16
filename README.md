@@ -36,7 +36,7 @@ Starting from Ed Smallenburg's code (Version 10.06.2018) this project has seen a
 If interested, have a look at [Revision history.txt](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Doc/Revision%20history.txt) in the doc folder. 
 
 ## Some technical details:
-The original display (rendered useless) has been removed and it's plexiglass cover now hides the infrared sensor VS1838B which receives signals from a remote control. A small 1.8" TFT color display (160x128 pixel, ST7735 driver IC, PCI bus) has been added to the front and is used for interacting with the user and presenting essential info. The necessary cutout in the front has been made with a small and affordable Proxxon mill/drill unit used by many hobbyists. A thin plexiglass is glued into the cutout. The TFT display itself sits right behind it, mounted on a frame made of PCB material to keep it in place. 
+The original display (rendered useless) has been removed and it's plexiglass cover now hides the infrared sensor VS1838B which receives signals from a remote control. A small 1.8" TFT color display (160x128 pixel, ST7735 driver IC, PCI bus) has been added to the front and is used for interacting with the user and presenting essential info. The necessary cutout in the front has been made with a small and affordable Proxxon mill/drill unit used by many hobbyists. A thin plexiglass is glued into the cutout. The TFT display sits right behind it, mounted on a frame made of PCB material to keep it in place. 
 
 After milling/drilling the front was thoroughly cleaned to get a smooth surface and then the upper flat part of it was painted black twice with a bottle of color spray. It rested 3 days in the sun to dry completely before being reattached to the case. A silver permanent marker was used to label the buttons later on.  
 
@@ -64,7 +64,7 @@ The ESP32 board used is an inexpensive ESP32-T board equipped with a ESP32-Bit m
 
 During the early stages of the project a lot of software updates were required and all were done via USB cable between ESP32-module and PC. However, at some stage the device rejoined the HiFi rack and opening the case now and then for a quick software update became a real pain in the butt. Hence the possibility to perform an ESP32 firmware update simply via SD card was added.  
 
-<p align="center"><img src="https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Doc/Update%20per%20SD%20Card.JPG" height="200"/></p>  
+<p align="center"><img src="https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Doc/Update%20per%20SD%20Card.JPG" height="220"/></p>  
 
 Plenty of holes were drilled at the back of the case for better thermal management but they later proved unneeded as the temps inside the case always stayed below 35 degs even with the lid on and all holes covered.  
 
@@ -74,7 +74,7 @@ If Ethernet is not wanted/possible than a small WLAN antenna attached with a sho
 
 In the early stages of the project the device was sometimes not able to establish an Ethernet connection after being switched on and it took me quite a while to figure out the problem. As it turned out, the W5500 Ethernet chip needs to be resetted substantially longer after power on than e.g the ESP32 chip.  Hence I modified the mainboard and replaced the original RC combination holding the reset line low with a Microchip MCP130T-315. This is a voltage supervisory IC designed to keep a microcontroller or any other chip in reset for a determined time (typically 350ms) after the system voltage has reached the desired level (here >= 3.15V) and stabilized. With that chip the connection issue vanished for good. 
 
-Another troubling issue were the infrequent system resets after inserting a SD card into the SD card socket while the system was running. I figured it might be the MISO signal from the SD card being directly attached to the ESP32. After adding driver gates IC2B (HC4050) and IC3D (74HC125) into the path between ESP32 and SD module this problem was gone as well. This solution disconnects the SD modules's MISO signal from the system when its chip select signal SDCS is inactive (high) and prevents any interference from the 74xx125 driver chip on the SD module. 
+Another troubling issue were the infrequent system resets after inserting a SD card into the SD card socket while the system was running. I figured it might be the MISO signal from the SD card module being directly attached to the ESP32. After adding driver gates IC2B (HC4050) and IC3D (74HC125) into the path between ESP32 and SD module this problem was gone as well. This solution disconnects the SD modules's MISO signal from the system and therefor prevents any interference from the SD card module when its assigned chip select signal SDCS is inactive (high). 
 
 Since mechanical rotary encoders (independent of their build quality) need to be debounced I decided very early in the project to perform it fully in hardware by using RC circuits (10k/100n) in combination with Schmitt-Trigger ICs (74HC14).  As expected, debouncing issues never surfaced and no line of code had to be wasted on this topic.  
 
@@ -89,7 +89,7 @@ All coding was done with **VSCode/PlatformIO-IDE**. To install needed libraries 
 Always make sure you have one of the latest versions of **Arduino espressif32 framework** installed. Older versions might produce build errors. Building the project was successfully done with latest espressif32 frameworks V4.2.0 and V5.0.0. Have a look at file [platformio.ini](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Software/platformio.ini) for required settings.
 
 **Important:**  
-If you a) use a Wiznet W5500 Ethernet card/shield **and** b) build with options `ENABLE_CMDSERVER` or `PORT23_ACTIVE` you will get a build error like this:  
+Building with the Arduino Ethernet library **and** with options `ENABLE_CMDSERVER` or `PORT23_ACTIVE` produced a build error like this:  
 ```
 src\main.cpp:394:19: error: cannot declare variable 'cmdserver' to be of abstract type 'EthernetServer'
  EthernetServer    cmdserver(80);                         // Instance of embedded webserver, port 80
@@ -98,8 +98,8 @@ In file included from C:\users\tj\.platformio\packages\framework-arduinoespressi
 C:\users\tj\.platformio\packages\framework-arduinoespressif32\cores\esp32/Server.h:28:18: note:         virtual void Server::begin(uint16_t)
      virtual void begin(uint16_t port=0) =0;
 ```
-Only in this case you need to modify by hand two files in the Ethernet lib:  
-- In _Ethernet.h_ add one line as shown below:  
+This could easily be remedied by modifying two files in the Ethernet lib:  
+- One line of code added in _Ethernet.h_:  
 ```
 class EthernetServer : public Server {
 private:
@@ -113,7 +113,7 @@ public:
 	virtual void begin(uint16_t port);
   ...
 ```
-- In _EthernetServer.cpp_ add the following function definition:
+- Function definition added in _EthernetServer.cpp_:
 ```
 void EthernetServer::begin(uint16_t port)
 {
@@ -124,7 +124,7 @@ void EthernetServer::begin(uint16_t port)
 
 ## :tada: Implementation of SoapESP32 library for DLNA server access
 
-The lib makes retrieving audio files from media servers a breeze: Function *browseServer()* is used to scan the server content and return a list of tracks (audio files). The device then selects an item from the list and sends a read request to the media server using *readStart()*. If granted, it will repeatedly *read()* a chunk of data into the queue which feeds the audio codec VS1053B until end of file. Finally the data connection to the server is closed with *readStop()* and the next item from the list is requested, provided the 'repeat file/folder' mode is active.  
+The lib makes retrieving audio files from a DLNA media server a breeze: Function *browseServer()* is used to scan the server content and return a list of tracks (audio files). The device then selects an item from the list and sends a read request to the media server using *readStart()*. If granted, it will repeatedly *read()* a chunk of data into the queue which feeds the audio codec VS1053B until end of file. Finally the data connection to the server is closed with *readStop()* and the next item from the list is requested, provided the 'repeat file/folder' mode is active.  
 
 The following sample picture sequence shows the actual implementation into this webradio project:
 
@@ -138,7 +138,7 @@ Alternatively have a look at the short clip _ESP32-Radio-DLNA.mp4_ in folder **D
 
 ## :relaxed: Postscript:
 
-Maybe this project can inspire one or two owners of old HiFi equipment to give their devices a second chance instead of tossing them into the scrap metal container. I spent a lot of time and efforts doing this project and wouldn't want to miss a second of it for I had lots of fun and learned much as well.  
+Maybe this project can inspire one or two owners of old HiFi equipment to give their devices a second chance instead of tossing them into the scrap metal container. I spent a lot of time and efforts doing this project and wouldn't want to miss a second of it for I had plenty of fun and learned many things as well.  
 
-If you have questions, miss some information or have suggestions, feel free to create an issue or contact me. However, my response times might be slow. 
+If you have questions, miss some information or have suggestions, feel free to create an issue or contact me. However, my response time might be slow at times. 
 
