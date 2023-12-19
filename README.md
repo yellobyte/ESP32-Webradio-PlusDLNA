@@ -52,7 +52,7 @@ A special extender board connects the mainboard with the original front PCB (CP1
 
 A necessary audio amplifier can be connected via the analog audio output or even the TOSLINK optical output for better sound quality. Well, going digital at the output is probably useless for web radio stations, as their stream bit rates mostly range between 32...128kbps and very rarely top 192kbps.  
 
-As for now, the device consists of several separate modules/PCBs. Three modules (ESP32, TOSLINK optical output, 10/100Mb Ethernet) were bought from various internet shops and the other four modules (power supply, mainboard, VS1053B decoder and front extender) were especially designed for this project with EAGLE PCB Design & Layout tool. The PCBs were ordered unassembled from various PCB prototype manufacturers in CN for little money. I did all the soldering myself, the decoder chip VS1053B in a tiny LQFP-48 package was a challange though. All relevant EAGLE project files, schematics, board layouts etc. are available [here](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/tree/main/EagleFiles).  
+As for now, the device consists of several separate modules/PCBs. Three modules (ESP32, TOSLINK optical output, 10/100Mb Ethernet) were bought from various internet shops and the other four modules (power supply, mainboard, VS1053B decoder and front extender) were especially designed for this project with EAGLE PCB Design & Layout tool. The PCBs were ordered unassembled from various PCB prototype manufacturers in CN for little money. I did all the soldering myself, the decoder chip VS1053B in a tiny LQFP-48 package was a challenge though. All relevant EAGLE project files, schematics, board layouts etc. are available [here](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/tree/main/EagleFiles).  
 
 The analog audio output socket, the power input socket, the common mode choke and the many PCB distance holders were harvested from the original tuner PCBs and reused.  The mounting holes on the new PCBs were placed in a way to match the existing mounting holes at the bottom of the case.  
 
@@ -66,7 +66,7 @@ During the early stages of the project a lot of software updates were required a
 
 <p align="center"><img src="https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Doc/Update%20per%20SD%20Card.JPG" height="220"/></p>  
 
-Plenty of holes were drilled at the back of the case for better thermal management but they later proved unneeded as the temps inside the case always stayed below 35 degs even with the lid on and all holes covered.  
+Plenty of holes were drilled at the back of the case for better thermal management but they later proved unnecessary as the temps inside the case always stayed below 35 degs even with the lid on and all holes covered.  
 
 If Ethernet is not wanted/possible than a small WLAN antenna attached with a short cable to the ESP32 WLAN-socket (I-PEX) would suffice. In that case I recommend to place the antenna directly behind the plexiglass cover for better receiption. Early tests with a WLAN router in 3m distance and fully closed case showed no issues with that arrangement.  
 
