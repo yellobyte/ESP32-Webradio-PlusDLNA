@@ -6,7 +6,9 @@ It all started when my much loved 1991's FM Tuner device **TECHNICS Tuner ST-G57
 
 ![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/raw/main/Doc/ESP32-Radio%20Front2.jpg)
 
-Now, after putting countless hours into the project, the device not only plays **internet radio streams** and audio files from **SD cards** but also **audio content from DLNA media servers** in the same LAN. The Arduino library **SoapESP32** has been created especially for the latter feature and enables any ESP32 based device to connect to DLNA media servers in the local network, browse their content and download selected files. It is basically a byproduct of this project and is now listed in the official Arduino library [collection](https://www.arduino.cc/reference/en/libraries/category/communication/).  
+Now, after putting countless hours into the project, the device not only plays **internet radio streams** and audio files from **SD cards** but also **audio content from DLNA media servers** in the same LAN.  
+
+The Arduino library **SoapESP32** has been created especially for the latter feature and enables any ESP32 based device to connect to DLNA media servers in the local network, browse their content and download selected files. It is basically a byproduct of this project and is now listed in the official Arduino library [collection](https://www.arduino.cc/reference/en/libraries/category/communication/).  
 
 ## :gift: Feature list:
 
@@ -50,7 +52,7 @@ A special extender board connects the mainboard with the original front PCB (CP1
 
 ![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/raw/main/Doc/Front%20PCB%20%2B%20Extender%20Board.jpg)
 
-A necessary audio amplifier can be connected via the analog audio output or even the TOSLINK optical output for better sound quality. Well, going digital at the output is probably useless for web radio stations, as their stream bit rates mostly range between 32...128kbps and very rarely top 192kbps.  
+A necessary audio amplifier can be connected via the analog audio output or even the TOSLINK optical output for better sound quality. Well, going digital at the output is probably useless for web radio stations only, as their stream bit rates mostly range between 32...128kbps and very rarely top 192kbps.  
 
 As for now, the device consists of several separate modules/PCBs. Three modules (ESP32, TOSLINK optical output, 10/100Mb Ethernet) were bought from various internet shops and the other four modules (power supply, mainboard, VS1053B decoder and front extender) were especially designed for this project with EAGLE PCB Design & Layout tool. The PCBs were ordered unassembled from various PCB prototype manufacturers in CN for little money. I did all the soldering myself, the decoder chip VS1053B in a tiny LQFP-48 package was a challenge though. All relevant EAGLE project files, schematics, board layouts etc. are available [here](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/tree/main/EagleFiles).  
 
