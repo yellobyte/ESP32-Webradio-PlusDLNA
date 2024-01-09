@@ -48,9 +48,13 @@ The original encoder attached to the rotary knob has been replaced with a modern
 
 Most of the original front buttons are still available and used for changing modes (Radio, SD card or DLNA), skipping tracks and selecting a repeat mode (None, Track, List or Random). Two adjacent buttons just below the TFT display went into the bin and made room for a SD card module (PCI bus with 4MHz clock speed only, for stability reasons).   
 
-A special extender board connects the mainboard with the original front PCB. The boards many additional IO ports (provided with the help of two 'Remote 8-Bit I/O Expander for I2C Bus ICs' PCF8574) make it possible to control LEDs and buttons via the original control matrix. The existing 10 channel buttons (1...8,9,0) continue to serve their original purpose, only this time with web radio stations assigned. The infrared sensor is attached to the extender board as well.
+A special extender board connects the mainboard with the original front PCB. This board makes it possible to control LEDs and buttons via the original control matrix. The existing 10 channel buttons (1...8,9,0) can continue to serve their original purpose, only this time with web radio stations assigned. The infrared sensor is attached to the extender board as well. 
 
 ![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/raw/main/Doc/Front%20PCB%20%2B%20Extender%20Board.jpg)
+
+The extender board contains two 'Remote 8-Bit I/O Expander for I2C Bus ICs' PCF8574 and is connected to the mainboard via I2C bus. Its only task is to provide additional IO ports to the ESP32 on the mainboard.  
+
+![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/EagleFiles/Extender-PCB/Schematic.JPG)
 
 The original front panel 7x4 control matrix has all buttons connected between 7 rows and 4 columns as shown below. Quite a few single header pins had to be soldered onto the front panel PCB to get electrical access to the matrix. 
 
@@ -73,17 +77,21 @@ And colums 1...4 (from left to right) are wired to the extender board as follows
 
 In order to check pressed buttons the extender board alternatingly pulls the rows LOW and checks it's column input lines for a HIGH to LOW transition because any button pressed will then subsequently pull its corresponding column to LOW as well.
 
-The extender board additionally drives the 3 front panel LEDs via IC PCF8574-2/P5-P7 (connector pins SV2/6...8) by setting the lines to LOW. Those 3 lines plus 3V3 are wired directly to a separate LED PCB next to the rotary encoder.
-
-A necessary audio amplifier can be connected via the analog audio output or even the TOSLINK optical output for better sound quality. Well, going digital at the output is probably useless for web radio stations only, as their stream bit rates mostly range between 32...128kbps and very rarely top 192kbps.  
+The extender board additionally drives the 3 front panel LEDs via IC PCF8574-2/P5-P7 (connector pins SV2/6...8) by setting the lines to LOW. Those 3 lines plus 3V3 are wired directly to a separate LED PCB next to the rotary encoder.  
 
 As for now, the device consists of several separate modules/PCBs. Three modules (ESP32, TOSLINK optical output, 10/100Mb Ethernet) were bought from various internet shops and the other four modules (power supply, mainboard, VS1053B decoder and front extender) were especially designed for this project with EAGLE PCB Design & Layout tool. The PCBs were ordered unassembled from various PCB prototype manufacturers in CN for little money. I did all the soldering myself, the decoder chip VS1053B in a tiny LQFP-48 package was a challenge though. All relevant EAGLE project files, schematics, board layouts etc. are available [here](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/tree/main/EagleFiles).  
 
 The analog audio output socket, the power input socket, the common mode choke and the many PCB distance holders were harvested from the original tuner PCBs and reused.  The mounting holes on the new PCBs were placed in a way to match the existing mounting holes at the bottom of the case.  
 
-The special VS1053B decoder module provides an I2S output which connects the decoder with the TOSLINK optical output module. If a digital audio output is not needed than any of the available cheap VS1053B decoder modules with 3.5mm jack socket (and without I2S socket) would do.  
+A necessary audio amplifier can be connected via the analog audio output or even the TOSLINK optical output for better sound quality. Well, going digital at the output is probably useless for web radio stations only, as their stream bit rates mostly range between 32...128kbps and very rarely top 192kbps.  
 
-The ESP32 board used is an inexpensive ESP32-T board equipped with a ESP32-Bit module (4MB Flash, 512kB RAM, no PSRAM, ultra small SMD WLAN antenna, I-PEX WLAN socket). Compared with other popular ESP32 dev boards the ESP32-T is slimmer and therefore even more breadboard compatible. I used it in the first flying test set and since it worked without issues I decided to keep it in the final project.
+The special VS1053B decoder module (the red one in the middle) provides an I2S output which connects the decoder with the TOSLINK optical output module (the green one on the left). Since all available VS1053B decoder modules on Ali etc. lacked an I2S port I unavoidably had to build my own one. 
+
+![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Doc/W5500Eth%2BWM8805Opt%2BVS1053Dec%20Boards.jpg)
+
+If a digital audio output is not needed than any of the available cheap VS1053B decoder modules with 3.5mm jack socket (and without I2S socket) would do.  
+
+The ESP32 board used on the mainboard is an inexpensive ESP32-T board equipped with a ESP32-Bit module (4MB Flash, 512kB RAM, no PSRAM, ultra small SMD WLAN antenna, I-PEX WLAN socket). Compared with other popular ESP32 dev boards the ESP32-T is slimmer and therefore even more breadboard compatible. I used it in the first flying test set and since it worked without issues I decided to keep it in the final project.
 
 For my next similar project (this time an old Denon TU-550 tuner case from the early 90's) I will use the [YB-ESP32-S3-ETH dev board](https://github.com/yellobyte/ESP32-DevBoards-Getting-Started/tree/main/boards/YB-ESP32-S3-ETH(YelloByte)) as it combines ESP32 + Ethernet + Wifi + debug port on a single small dev board. Both versions -N4 and -N8R8 will do but the latter provides 8MB PSRAM which allows buffering audio streams if that was needed. This board will allow to make the main board much smaller as well.
 
