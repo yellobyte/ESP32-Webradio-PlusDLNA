@@ -88,7 +88,7 @@
 //
 
 // Define the version number, also used for webserver as Last-Modified header:
-#define VERSION "15 July 2022 13:55"
+#define VERSION "10 Jan 2024 19:00"
 //
 // Defined in platform.ini as it affects soapESP32 too !
 //#define USE_ETHERNET                   // Use Ethernet/LAN instead of WiFi builtin
@@ -105,6 +105,7 @@
 #define VU_METER                       // Displays VU-Meter levels provided by VS1053B
 #define SD_UPDATES                     // SW-Updates via SD-Card during power-up
 #define ENABLE_ESP32_HW_WDT            // Enable ESP32 Hardware Watchdog
+#define FRONT_PANEL_BUTTONS            // Use front panel buttons
 
 #include <Arduino.h>
 //#include <FS.h>
@@ -231,7 +232,9 @@ void        mp3loop();
 void        playTask(void * parameter);       // Task to play the stream
 void        spfTask(void * parameter);        // Task for special functions
 void        getTime();
+#ifdef FRONT_PANEL_BUTTONS			
 void        extenderTask(void * parameter);   // Task for communication with PCF8574 ICs
+#endif			
 void        vumeterTask(void * parameter);    // Task for showing vu meter readings
 bool        handlePCF8574();
 #ifdef USE_ETHERNET
@@ -400,7 +403,9 @@ bool              reInitEthernet = false;                // W5500 board re-initi
 TaskHandle_t      mainTask;                              // Taskhandle for main task
 TaskHandle_t      xplayTask;                             // Task handle for play task
 TaskHandle_t      xspfTask;                              // Task handle for special functions
+#ifdef FRONT_PANEL_BUTTONS													
 TaskHandle_t      xextenderTask;                         // Task handle for communication with PCF8574 ICs
+#endif			
 #if defined VU_METER && defined LOAD_VS1053_PATCH
 TaskHandle_t      xvumeterTask;                          // Task handle for displaying vu-meter value
 #endif
@@ -3767,6 +3772,7 @@ void setup()
     NULL,                                                // parameter of the task
     1,                                                   // priority of the task
     &xspfTask);                                          // Task handle to keep track of created task
+#ifdef FRONT_PANEL_BUTTONS  														
   xTaskCreate(
     extenderTask,                                        // Task for communication with PCF8574 ICs
     "extenderTask",                                      // name of task.
@@ -3774,6 +3780,8 @@ void setup()
     NULL,                                                // parameter of the task
     1,                                                   // priority of the task
     &xextenderTask);                                     // Task handle to keep track of created task
+#endif			
+#if defined VU_METER && defined LOAD_VS1053_PATCH																								 
   xTaskCreate(
     vumeterTask,                                         // Task for displaying the vu-meter value
     "vumeterTask",                                       // name of task.
@@ -3781,6 +3789,7 @@ void setup()
     NULL,                                                // parameter of the task
     1,                                                   // priority of the task
     &xvumeterTask);                                      // Task handle to keep track of created task
+#endif			
 #ifdef ENABLE_ESP32_HW_WDT
   esp_task_wdt_init(WDT_TIMEOUT, true);                 // enable panic so ESP32 restarts
   esp_task_wdt_add(NULL);                               // add current thread to WDT watch  
@@ -6598,7 +6607,9 @@ const char* analyzeCmd(const char* par, const char* val)
     dbgprint("Stack minimum mainTask was %d", uxTaskGetStackHighWaterMark (mainTask));
     dbgprint("Stack minimum playTask was %d", uxTaskGetStackHighWaterMark (xplayTask));
     dbgprint("Stack minimum spfTask  was %d", uxTaskGetStackHighWaterMark (xspfTask));
+#ifdef FRONT_PANEL_BUTTONS    															
     dbgprint("Stack minimum extenderTask  was %d", uxTaskGetStackHighWaterMark (xextenderTask));
+#endif   					
 #if defined VU_METER && defined LOAD_VS1053_PATCH
     dbgprint("Stack minimum vumeterTask  was %d", uxTaskGetStackHighWaterMark (xvumeterTask));
 #endif    
@@ -7320,19 +7331,6 @@ uint8_t I2CwireRead(uint8_t address, uint8_t *data)
   return 0;
 }
 
-
-//**************************************************************************************************
-//                                H A N D L E P C F 8 5 7 4                                        *
-//**************************************************************************************************
-// Check front buttons and set LEDs. We use the original TECHNICS ST-G570 front panel board with   *
-// all the buttons and LEDs on it. The following wiring to the PCF8574-1 is used:                  *
-// Inputs: P0 = CP103/1, P1 = CP103/2, P2 = CP103/3, P3 = CP102/7 (all inputs via 8k2 Rs to 3V3)   *
-// Outputs: P4 = CP103/5, P5 = CP103/6, P6 = CP103/7, P7 = CP103/8                                 *
-// Wiring for the PCF8574-2: Outputs: P0 = CP102/9, P5-P7 = LEDs                                   *
-// (Please refer to ST-G570 service manual, page 11 !)                                             *
-// Returns 0 if no error occurred, otherwise 1.                                                    *
-//**************************************************************************************************
-
 void showPreset(int8_t preset)                             // helper function for handlePCF8574()
 {
   String tmp = readhostfrompref(preset);                   // get host spec and possible comment
@@ -7350,6 +7348,17 @@ void showPreset(int8_t preset)                             // helper function fo
   }
 }
 
+//**************************************************************************************************
+//                                H A N D L E P C F 8 5 7 4                                        *
+//**************************************************************************************************
+// Check front buttons and set LEDs. We use the original TECHNICS ST-G570 front panel board with   *
+// all the buttons and LEDs on it. The following wiring to the PCF8574-1 is used:                  *
+// Inputs: P0 = CP103/1, P1 = CP103/2, P2 = CP103/3, P3 = CP102/7 (all inputs via 8k2 Rs to 3V3)   *
+// Outputs: P4 = CP103/5, P5 = CP103/6, P6 = CP103/7, P7 = CP103/8                                 *
+// Wiring for the PCF8574-2: Outputs: P0 = CP102/9, P5-P7 = LEDs                                   *
+// (Please refer to ST-G570 service manual, page 11 !)                                             *
+// Returns 0 if no error occurred, otherwise 1.                                                    *
+//**************************************************************************************************
 
 bool handlePCF8574()
 {
@@ -7611,6 +7620,7 @@ bool handlePCF8574()
 }
 
 
+#ifdef FRONT_PANEL_BUTTONS													
 //**************************************************************************************************
 //                                  E X T E N D E R T A S K                                        *
 //**************************************************************************************************
@@ -7627,6 +7637,7 @@ void extenderTask (void * parameter)
   }
   //vTaskDelete(NULL);                                 // will never arrive here
 }
+#endif			
 
 #if defined VU_METER && defined LOAD_VS1053_PATCH
 //**************************************************************************************************
