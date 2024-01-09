@@ -7408,8 +7408,8 @@ bool handlePCF8574()
   I2CwireWrite(PCF8574_1_ADDR, 0xFF);                       // set row to HIGH again
   if (ret) return true;                                     // if key was pressed we don't inquire any further
 
-  // Checking buttons on second row 
-  if (I2CwireWrite(PCF8574_1_ADDR, 0xDF)) {                 // pull second row LOW (P5 connected to CP103/6)
+  // Checking buttons on fifth row 
+  if (I2CwireWrite(PCF8574_1_ADDR, 0xDF)) {                 // pull fifth row LOW (P5 connected to CP103/6)
     dbgprint("Error I2CwireWrite(PCF8574-1)");
     return false;
   }
@@ -7418,7 +7418,7 @@ bool handlePCF8574()
     return false;
   }
   if (((stat & 0xF0) == 0xD0) && ((stat & 0x0C) != 0x0C)) { // any button in this row pressed ?
-    // (row 2 has only 2 buttons assigned)
+    // (row 5 has only 2 buttons assigned)
     if (!(stat & 0x08) && (oldStatus[1] & 0x08)) {          // button just pressed ?
       dbgprint("CH9 Button pressed");                       // button name according to Technics manual
       buttonPreset = 9;
@@ -7439,8 +7439,8 @@ bool handlePCF8574()
   I2CwireWrite(PCF8574_1_ADDR, 0xFF);                       // set row to HIGH again
   if (ret) return true;
 
-  // Checking buttons on third row 
-  if (I2CwireWrite(PCF8574_1_ADDR, 0xBF)) {                 // pull third row LOW (P6 connected to CP103/7)
+  // Checking buttons on sixth row 
+  if (I2CwireWrite(PCF8574_1_ADDR, 0xBF)) {                 // pull sixth row LOW (P6 connected to CP103/7)
     dbgprint("Error I2CwireWrite(PCF8574-1)");
     return false;
   }
@@ -7449,7 +7449,7 @@ bool handlePCF8574()
     return false;
   }
   if (((stat & 0xF0) == 0xB0) && ((stat & 0x0F) != 0x0F)) { // any button in this row pressed ?
-    // (row 3 has 4 buttons assigned)
+    // (row 6 has 4 buttons assigned)
     if (!(stat & 0x08) && (oldStatus[2] & 0x08)) {          // button just pressed ?
       dbgprint("CH5 Button pressed");                       // button name according to Technics manual
       buttonPreset = 5;
@@ -7480,8 +7480,8 @@ bool handlePCF8574()
   I2CwireWrite(PCF8574_1_ADDR, 0xFF);                       // set row to HIGH again
   if (ret) return true;
 
-  // Checking buttons on forth row 
-  if (I2CwireWrite(PCF8574_1_ADDR, 0x7F)) {                 // pull forth row LOW (P7 connected to CP103/8)
+  // Checking buttons on seventh row 
+  if (I2CwireWrite(PCF8574_1_ADDR, 0x7F)) {                 // pull seventh row LOW (P7 connected to CP103/8)
     dbgprint("Error I2CwireWrite(PCF8574-1)");
     return false;
   }
@@ -7530,8 +7530,8 @@ bool handlePCF8574()
     else if (mp3fileRepeatFlag == RANDOM)
       ledMask = 0x7F;
   }
-  // Checking buttons on fifth row 
-  if (I2CwireWrite(PCF8574_2_ADDR, ledMask & 0xFE)) {       // pull fifth row LOW (P0 connected to CP102/9)
+  // Checking buttons on forth row 
+  if (I2CwireWrite(PCF8574_2_ADDR, ledMask & 0xFE)) {       // pull forth row LOW (P0 connected to CP102/9)
     dbgprint("Error I2CwireWrite(PCF8574-2)");
     return false;
   }
@@ -7574,7 +7574,8 @@ bool handlePCF8574()
   I2CwireWrite(PCF8574_2_ADDR, ledMask & 0xFF);             // set row to HIGH again
   if (ret) return true;
 
-  if (I2CwireWrite(PCF8574_2_ADDR, ledMask & 0xFD)) {       // pull sixth row LOW (P1 connected to CP102/8)
+  // Checking buttons on third row 
+  if (I2CwireWrite(PCF8574_2_ADDR, ledMask & 0xFD)) {       // pull third row LOW (P1 connected to CP102/8)
     dbgprint("Error I2CwireWrite(PCF8574-2)");
     return false;
   }
@@ -7583,7 +7584,7 @@ bool handlePCF8574()
     return false;
   }
   if (((stat & 0xF0) == 0xF0) && ((stat & 0x04) != 0x04)) { // any button in this row pressed ?
-    // (row 5 has only 2 buttons assigned)
+    // (row 3 has only 1 buttons assigned)
     if (!(stat & 0x04) && (oldStatus[5] & 0x04)) {          // button just pressed ?
       dbgprint("IF Band Button pressed");                   // button name according to Technics manual
       if ((currentSource == SDCARD && playMode == SDCARD) ||
