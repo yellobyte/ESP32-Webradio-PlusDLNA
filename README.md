@@ -48,9 +48,32 @@ The original encoder attached to the rotary knob has been replaced with a modern
 
 Most of the original front buttons are still available and used for changing modes (Radio, SD card or DLNA), skipping tracks and selecting a repeat mode (None, Track, List or Random). Two adjacent buttons just below the TFT display went into the bin and made room for a SD card module (PCI bus with 4MHz clock speed only, for stability reasons).   
 
-A special extender board connects the mainboard with the original front PCB (CP102, Pins 7-9 and CP103, Pins 1-8). The boards many additional IO ports make it possible to control LEDs and buttons via the original control [matrix](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Doc/ST-G570%20Key%20Matrix%20Original.JPG). The existing 10 channel buttons (1...8,9,0) continue to serve their original purpose, only this time with web radio stations assigned. The infrared sensor is attached to the extender board as well.
+A special extender board connects the mainboard with the original front PCB. The boards many additional IO ports (provided with the help of two 'Remote 8-Bit I/O Expander for I2C Bus ICs' PCF8574) make it possible to control LEDs and buttons via the original control matrix. The existing 10 channel buttons (1...8,9,0) continue to serve their original purpose, only this time with web radio stations assigned. The infrared sensor is attached to the extender board as well.
 
 ![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/raw/main/Doc/Front%20PCB%20%2B%20Extender%20Board.jpg)
+
+The original front panel 7x4 control matrix has all buttons connected between 7 rows and 4 columns as shown below. Quite a few single header pins had to be soldered onto the front panel PCB to get electrical access to the matrix. 
+
+<p align="center"><img src="https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Doc/ST-G570%20Key%20Matrix%20Original.JPG" width="500"/></p>
+
+Rows 1...7 of the matrix (from top to bottom) are wired to connectors SV1 and SV2 on the extender board as follows:  
+ * Row 1 (CP103/5) --> SV1/5 (PCF8574-1/P4, output)
+ * Row 2 (CP103/4) is unused (buttons 'Preset up/down' have been removed)
+ * Row 3 (CP102/8) --> SV2/2 (PCF8574-2/P1, output)
+ * Row 4 (CP102/9) --> SV2/1 (PCF8574-2/P0, output)
+ * Row 5 (CP103/6) --> SV1/6 (PCF8574-1/P5, output)
+ * Row 6 (CP103/7) --> SV1/7 (PCF8574-1/P6, output)
+ * Row 7 (CP103/8) --> SV1/8 (PCF8574-1/P7, output)
+
+And colums 1...4 (from left to right) are wired to the extender board as follows:  
+ * Column 1 (CP103/1) --> SV1/1 (PCF8574-1/P0, input, with 8.2k pull-up resistor to 3V3)
+ * Column 2 (CP103/2) --> SV1/2 (PCF8574-1/P1, input, with 8.2k pull-up resistor to 3V3)
+ * Column 3 (CP103/3) --> SV1/3 (PCF8574-1/P2, input, with 8.2k pull-up resistor to 3V3)
+ * Column 4 (CP102/7) --> SV1/4 (PCF8574-1/P3, input, with 8.2k pull-up resistor to 3V3)
+
+In order to check pressed buttons the extender board alternatingly pulls the rows LOW and checks it's column input lines for a HIGH to LOW transition because any button pressed will then subsequently pull its corresponding column to LOW as well.
+
+The extender board additionally drives the 3 front panel LEDs via IC PCF8574-2/P5-P7 (connector pins SV2/6...8) by setting the lines to LOW. Those 3 lines plus 3V3 are wired directly to a separate LED PCB next to the rotary encoder.
 
 A necessary audio amplifier can be connected via the analog audio output or even the TOSLINK optical output for better sound quality. Well, going digital at the output is probably useless for web radio stations only, as their stream bit rates mostly range between 32...128kbps and very rarely top 192kbps.  
 
