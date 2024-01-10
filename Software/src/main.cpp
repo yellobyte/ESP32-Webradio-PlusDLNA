@@ -88,7 +88,7 @@
 //
 
 // Define the version number, also used for webserver as Last-Modified header:
-#define VERSION "10 Jan 2024 19:00"
+#define VERSION "10 Jan 2024 23:03"
 //
 // Defined in platform.ini as it affects soapESP32 too !
 //#define USE_ETHERNET                   // Use Ethernet/LAN instead of WiFi builtin
@@ -2175,8 +2175,7 @@ void IRAM_ATTR isr_enc_turn()
 //**************************************************************************************************
 void showStreamTitle(const char *ml, bool full)
 {
-  char* p1;
-  char* p2;
+  char *p1, *p2;
   char  streamtitle[150];                      // streamtitle from metadata
 
   if (strstr(ml, "StreamTitle=")) {
@@ -2190,8 +2189,8 @@ void showStreamTitle(const char *ml, bool full)
       *p2 = '\0';                              // strip the rest of the line
     }
     // save last part of string as streamtitle.  Protect against buffer overflow
-    strncpy(streamtitle, p1, sizeof (streamtitle));
-    streamtitle[sizeof (streamtitle) - 1] = '\0';
+    strncpy(streamtitle, p1, sizeof(streamtitle));
+    streamtitle[sizeof(streamtitle) - 1] = '\0';
   }
   else if (full) {
     // info probably from playlist or mp3 file
@@ -2203,10 +2202,13 @@ void showStreamTitle(const char *ml, bool full)
     return;                                    // Do not show
   }
   utf8ascii(streamtitle);
-  if (currentSource == STATION && *streamtitle == '\0')
+  if (currentSource == STATION && *streamtitle == '\0' && lastArtistSong.length() == 0) {
     strcpy(streamtitle, "...waiting for text...");
+  }
   // save for status request from browser
-  icystreamtitle = streamtitle;
+  if (*streamtitle != '\0') {
+    icystreamtitle = streamtitle;
+  }
   if (!full) {
     if ((p1 = strstr(streamtitle, " - ")) ||
          (p1 = strstr(streamtitle, " / "))) {  // look for artist/title separator
