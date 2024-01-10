@@ -52,7 +52,7 @@ A special extender board connects the mainboard with the original front PCB. Thi
 
 ![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/raw/main/Doc/Front%20PCB%20%2B%20Extender%20Board.jpg)
 
-The extender board contains two 'Remote 8-Bit I/O Expander for I2C Bus ICs' PCF8574 and is connected to the mainboard via I2C bus. Its only task is to provide additional IO ports to the ESP32 on the mainboard. Jumper JP1 on the board is open as the interrupt signal INT from both ICs is unused. Every ~60ms the ICs get polled from the ESP32 via I2C bus instead.
+The extender board contains two 'Remote 8-Bit I/O Expander for I2C Bus ICs' PCF8574 and is connected to the mainboard via I2C bus. Its only task is to provide additional IO ports to the ESP32 on the mainboard. Jumper JP1 on the board is open as the interrupt signal INT from both ICs is unused. Every ~60ms the ICs get polled from the ESP32 instead.
 
 ![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/EagleFiles/Extender-PCB/Schematic.JPG)
 
