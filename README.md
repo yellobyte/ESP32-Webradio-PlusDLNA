@@ -75,7 +75,7 @@ And colums 1...4 (from left to right) are wired to the extender board as follows
  * Column 3 (CP103/3) --> SV1/3 (PCF8574-1/P2, input, with 8.2k pull-up resistor to 3V3)
  * Column 4 (CP102/7) --> SV1/4 (PCF8574-1/P3, input, with 8.2k pull-up resistor to 3V3)
 
-In order to check pressed buttons the extender board alternatingly pulls the rows LOW and checks it's column input lines for a HIGH to LOW transition because any button pressed will then subsequently pull its corresponding column to LOW as well.
+In order to detect pressed buttons the extender board successively pulls the rows LOW and checks it's column input lines for a HIGH to LOW transition because any button pressed will then subsequently pull its corresponding column to LOW as well.
 
 The extender board additionally drives the 3 front panel LEDs via IC PCF8574-2/P5-P7 (connector pins SV2/6...8) by setting the lines to LOW. Those 3 lines plus 3V3 are wired directly to a separate LED PCB next to the rotary encoder.  
 
