@@ -44,9 +44,11 @@ After milling/drilling the front was thoroughly cleaned to get a smooth surface 
 
 ![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Doc/Front%20-%20Just%20Painted%20All%20Black.jpg)
 
-The original encoder attached to the rotary knob has been replaced with a modern one (Stec Rotary Encoder STEC11B03, 1 impulse per 2 clicks, turn + push) and now the knob is used to browse through the list of pre-configured web radio stations, the content of SD cards or DLNA media servers storing thousands of audio files. Going up and down the directory levels and finally selecting an audio file for playing is done very fast with the knob and the small 'return' button next to it.
+The original encoder attached to the rotary knob has been replaced with a modern one (Stec Rotary Encoder STEC11B03, 1 impulse per 2 clicks, turn + push). The knob is now used to browse through the list of pre-configured web radio stations, the content of SD cards or DLNA media servers storing thousands of audio files. Going up and down the directory levels and finally selecting an audio file for playing is done very fast with the knob in combination with the small 'return' button next to it.  
 
-Most of the original front buttons are still available and used for changing modes (Radio, SD card or DLNA), skipping tracks and selecting a repeat mode (None, Track, List or Random). Two adjacent buttons just below the TFT display went into the bin and made room for a SD card module (PCI bus with 4MHz clock speed only, for stability reasons).   
+![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Doc/RotaryEncoder%2BLED-PCB%2BInfraredSensor.jpg)
+
+Most of the original front buttons are still available and used for changing modes (Radio, SD card or DLNA), skipping tracks and selecting a repeat mode (None, Track, List or Random). Two adjacent buttons just below the TFT display went into the bin and made room for a SD card module (PCI bus with 4MHz clock speed only for stability reasons).   
 
 A special extender board connects the mainboard with the original front PCB. This board makes it possible to control LEDs and buttons via the original control matrix. The existing 10 channel buttons (1...8,9,0) can continue to serve their original purpose, only this time with web radio stations assigned. The infrared sensor is attached to the extender board as well. 
 
@@ -99,7 +101,7 @@ For my next similar project (this time an old Denon TU-550 tuner case from the e
 
 During the early stages of the project a lot of software updates were required and all were done via USB cable between ESP32-module and PC. However, at some stage the device rejoined the HiFi rack and opening the case now and then for a quick software update became a real pain in the butt. Hence the possibility to perform an ESP32 firmware update simply via SD card was added.  
 
-<p align="center"><img src="https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Doc/Update%20per%20SD%20Card.JPG" height="220"/></p>  
+<p align="center"><img src="https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Doc/Update%20per%20SD%20Card.JPG" height="250"/></p>  
 
 Plenty of holes were drilled at the back of the case for better thermal management but they later proved unnecessary as the temps inside the case always stayed below 35 degs even with the lid on and all holes covered.  
 
