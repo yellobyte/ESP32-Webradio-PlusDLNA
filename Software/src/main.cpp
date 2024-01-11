@@ -33,19 +33,12 @@
 //*                                                                                                     *
 //*******************************************************************************************************
 //
-// The standard Arduino Ethernet Library V2.0.0 causes errors when compiled for ESP32-Radio.
-// Two files Ethernet.h and EthernetServer.cpp had to be modified.
-// In EthernetServer.cpp, a new function has to be defined:
-//    void EthernetServer::begin(uint16_t port)
-//    {
-//      _port = port;
-//      begin();
-//    }
+// The standard Arduino Ethernet Library V2.0.x causes errors when compiled for an ESP32.
+// File Ethernet.h needs to be modified. 
+// Change line "class EthernetServer : public Server {"  to  "class EthernetServer : public Print {"
+// and it will compile without problems.
 //
-// In Ethernet.h (Section EthernetServer), above function is to be declared:
-//    virtual void begin(uint16_t port);
-//
-// In Ethernet.h: #define MAX_SOCK_NUM 4 & #define ETHERNET_LARGE_BUFFERS for better connection stability.
+// In Ethernet.h define MAX_SOCK_NUM 4  and  ETHERNET_LARGE_BUFFERS for better connection stability.
 //
 // SPI speed for the Ethernet Card is default 14MHz in W5100.h (Arduino Ethernet Library V2.0.0).
 //
@@ -88,7 +81,7 @@
 //
 
 // Define the version number, also used for webserver as Last-Modified header:
-#define VERSION "10 Jan 2024 23:03"
+#define VERSION "11 Jan 2024 09:15"
 //
 // Defined in platform.ini as it affects soapESP32 too !
 //#define USE_ETHERNET                   // Use Ethernet/LAN instead of WiFi builtin
@@ -490,7 +483,6 @@ std::vector<keyname_t> keynames;                         // Keynames in NVS
 sv uint16_t       clickcount = 0;                        // Incremented per encoder click
 sv int16_t        rotationcount = 0;                     // Current position of rotary switch
 sv uint16_t       enc_inactivity = 0;                    // Time inactive
-sv int16_t        locrotcount = 0;                       // Local rotation count
 sv bool           singleClick = false;                   // True if single click detected
 //sv bool           tripleclick = false;                  // True if triple click detected
 sv bool           doubleClick = false;                   // True if double click detected
@@ -2040,10 +2032,6 @@ void IRAM_ATTR timer100()
   if (++enc_inactivity == 36000) {               // count inactivity time
     enc_inactivity = 1000;                       // prevent wrap
   }
-  // clear rotation counter after some inactivity
-  if (enc_inactivity > 15 && locrotcount) {
-    locrotcount = 0;
-  }
   // now detection of single/double click of rotary encoder switch
   if (clickcount) {                              // any click?
     if (oldclickcount == clickcount) {           // stable situation?
@@ -2205,32 +2193,31 @@ void showStreamTitle(const char *ml, bool full)
   if (currentSource == STATION && *streamtitle == '\0' && lastArtistSong.length() == 0) {
     strcpy(streamtitle, "...waiting for text...");
   }
-  // save for status request from browser
   if (*streamtitle != '\0') {
-    icystreamtitle = streamtitle;
-  }
-  if (!full) {
-    if ((p1 = strstr(streamtitle, " - ")) ||
-         (p1 = strstr(streamtitle, " / "))) {  // look for artist/title separator
-      *p1++ = '\n';                            // found: replace 3 characters by newline
-      p2 = p1 + 2;
-      if (*p2 == ' ') {                        // leading space in title?
-        p2++;
-      }                                        // shift 2nd part of title 2 or 3 places
-      strcpy (p1, p2);                         // before: ".. - ..", after: "..\n.."
+    icystreamtitle = streamtitle;                // save for status request from browser
+    if (!full) {
+      if ((p1 = strstr(streamtitle, " - ")) ||
+          (p1 = strstr(streamtitle, " / "))) {   // look for artist/title separator
+        *p1++ = '\n';                            // found: replace 3 characters by newline
+        p2 = p1 + 2;
+        if (*p2 == ' ') {                        // leading space in title?
+          p2++;
+        }                                        // shift 2nd part of title 2 or 3 places
+        strcpy (p1, p2);                         // before: ".. - ..", after: "..\n.."
+      }
+      // skip [xxx] if exists (comes only with some radio stations, e.g. 1FM)
+      if ((p1 = strstr(streamtitle, "[")) &&
+          (p2 = strstr(streamtitle, "]")) &&
+          p1 < p2) {
+        *p1 = '\0';
+        if (*(p1 - 1) == ' ') *(p1 - 1) = '\0';
+      }
     }
-    // skip [xxx] if exists (comes only with some radio stations, e.g. 1FM)
-    if ((p1 = strstr(streamtitle, "[")) &&
-         (p2 = strstr(streamtitle, "]")) &&
-         p1 < p2) {
-      *p1 = '\0';
-      if (*(p1 - 1) == ' ') *(p1 - 1) = '\0';
+    if (encoderMode != SELECT) {                 // don't disturb selecting SD tracks or stations
+      tftset(1, streamtitle);                    // set screen segment text middle part
     }
-  }
-  if (encoderMode != SELECT) {                 // don't disturb selecting SD tracks or stations
-    tftset(1, streamtitle);                    // set screen segment text middle part
-  }
-  lastArtistSong = streamtitle;
+    lastArtistSong = streamtitle;
+  }  
 }
 
 //**************************************************************************************************
