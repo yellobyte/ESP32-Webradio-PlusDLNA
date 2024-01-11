@@ -123,10 +123,10 @@ As visible in the main board schematic above, the inputs of all unused 74HC gate
 
 All coding was done with **VSCode/PlatformIO-IDE**. To install needed libraries (Ethernet, SoapESP32, etc.) click the **PlatformIO sidebar icon**, open the **libraries** view and search for libs. Once found, select the newest release and click on **Add to Project**.
 
-Always make sure you have one of the latest versions of **Arduino espressif32 framework** installed. Older versions might produce build errors. Building the project was successfully done with latest espressif32 frameworks V4.2.0 and V5.0.0. Have a look at file [platformio.ini](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Software/platformio.ini) for required settings.
+Always make sure you have one of the latest versions of **Arduino espressif32 framework** installed. Older versions might produce build errors. Building the project was successfully done with latest espressif32 frameworks V4.2.0, V5.0.0 and V6.0.0. Have a look at file [platformio.ini](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Software/platformio.ini) for required settings.
 
 **Important:**  
-Building with the Arduino Ethernet library **and** with options `ENABLE_CMDSERVER` or `PORT23_ACTIVE` produced a build error like this:  
+Building with the official Arduino Ethernet library **and** with build options `ENABLE_CMDSERVER` or `PORT23_ACTIVE` will produce a build error like this:  
 ```
 src\main.cpp:394:19: error: cannot declare variable 'cmdserver' to be of abstract type 'EthernetServer'
  EthernetServer    cmdserver(80);                         // Instance of embedded webserver, port 80
@@ -135,28 +135,13 @@ In file included from C:\users\tj\.platformio\packages\framework-arduinoespressi
 C:\users\tj\.platformio\packages\framework-arduinoespressif32\cores\esp32/Server.h:28:18: note:         virtual void Server::begin(uint16_t)
      virtual void begin(uint16_t port=0) =0;
 ```
-This could easily be remedied by modifying two files in the Ethernet lib:  
-- One line of code added in _Ethernet.h_:  
+In this case file *Ethernet.h* in the Ethernet lib needs to be modified. Just change line  
 ```
 class EthernetServer : public Server {
-private:
-	uint16_t _port;
-public:
-	EthernetServer(uint16_t port) : _port(port) { }
-	EthernetClient available();
-	EthernetClient accept();
-	virtual void begin();
-	// added for ESP32-Webradio++
-	virtual void begin(uint16_t port);
-  ...
 ```
-- Function definition added in _EthernetServer.cpp_:
+to
 ```
-void EthernetServer::begin(uint16_t port)
-{
-	_port = port;
-	begin();
-}
+class EthernetServer : public Print {
 ```
 
 ## :tada: Implementation of SoapESP32 library for DLNA server access
