@@ -42,11 +42,11 @@ The original display (rendered useless) has been removed and it's plexiglass cov
 
 After milling/drilling the front was thoroughly cleaned to get a smooth surface and then the upper flat part of it was painted black twice with a bottle of color spray. It rested 3 days in the sun to dry completely before being reattached to the case. A silver permanent marker was used to label the buttons later on.  
 
-![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Doc/Front%20-%20Just%20Painted%20All%20Black.jpg)
+![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/raw/main/Doc/Front%20-%20Just%20Painted%20All%20Black.jpg)
 
 The original encoder attached to the rotary knob has been replaced with a modern one (Stec Rotary Encoder STEC11B03, 1 impulse per 2 clicks, turn + push). The knob is now used to browse through the list of pre-configured web radio stations, the content of SD cards or DLNA media servers storing thousands of audio files. Going up and down the directory levels and finally selecting an audio file for playing is done very fast with the knob in combination with the small 'return' button next to it.  
 
-![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Doc/RotaryEncoder%2BLED-PCB%2BInfraredSensor.jpg)
+![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/raw/main/Doc/RotaryEncoder%2BLED-PCB%2BInfraredSensor.jpg)
 
 Most of the original front buttons are still available and used for changing modes (Radio, SD card or DLNA), skipping tracks and selecting a repeat mode (None, Track, List or Random). Two adjacent buttons just below the TFT display went into the bin and made room for a SD card module (PCI bus with 4MHz clock speed only for stability reasons).   
 
@@ -56,11 +56,11 @@ A special extender board connects the mainboard with the original front PCB. Thi
 
 The extender board contains two 'Remote 8-Bit I/O Expander for I2C Bus ICs' PCF8574 and is connected to the mainboard via I2C bus. Its only task is to provide additional IO ports to the ESP32 on the mainboard. Jumper JP1 on the board is open as the interrupt signal INT from both ICs is unused. Every ~60ms the ICs get polled from the ESP32 instead.
 
-![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/EagleFiles/Extender-PCB/Schematic.JPG)
+![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/raw/main/EagleFiles/Extender-PCB/Schematic.JPG)
 
 The original front panel 7x4 control matrix has all buttons connected between 7 rows and 4 columns as shown below. Quite a few single header pins had to be soldered onto the front panel PCB to get electrical access to the matrix. 
 
-<p align="center"><img src="https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Doc/ST-G570%20Key%20Matrix%20Original.JPG" width="500"/></p>
+<p align="center"><img src="https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/raw/main/Doc/ST-G570%20Key%20Matrix%20Original.JPG" width="500"/></p>
 
 Rows 1...7 of the matrix (from top to bottom) are wired to connectors SV1 and SV2 on the extender board as follows:  
  * Row 1 (CP103/5) --> SV1/5 (PCF8574-1/P4, output)
@@ -89,11 +89,22 @@ A necessary audio amplifier can be connected via the analog audio output or even
 
 The special VS1053B decoder module (the red one in the middle) provides an I2S output which connects the decoder with the TOSLINK optical output module (the green one on the left). Since all available VS1053B decoder modules on Ali etc. lacked an I2S port I unavoidably had to build my own one. 
 
-![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Doc/W5500Eth%2BWM8805Opt%2BVS1053Dec%20Boards.jpg)
+![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/raw/main/Doc/W5500Eth%2BWM8805Opt%2BVS1053Dec%20Boards.jpg)
 
 If a digital audio output is not needed than any of the available cheap VS1053B decoder modules with 3.5mm jack socket (and without I2S socket) would do.  
 
-The ESP32 board used on the mainboard is an inexpensive ESP32-T board equipped with a ESP32-Bit module (4MB Flash, 512kB RAM, no PSRAM, ultra small SMD WLAN antenna, I-PEX WLAN socket). Compared with other popular ESP32 dev boards the ESP32-T is slimmer and therefore even more breadboard compatible. I used it in the first flying test set and since it worked without issues I decided to keep it in the final project.
+The WM8805 I2S to TOSLINK module (China) was the cheapest module version I could get as it lacks the COAX output socket, the crystal oscillator, some Cs, Rs and the power input socket. However, all this is not needed in this project. Important was the ability to put the WM8805 into HW mode by shifting around some Rs on the module. 
+
+The WM8805 can be operated in either software or hardware control mode. The mode is simply determined by sampling the state of the SDIN pin. If SDIN is LOW
+during power up or hardware reset then the WM8805 switches into hardware control mode. In this mode most features will assume default values but some can be configured using external pins (SDOUT, SCLK, CSB, SWIFMODE). 
+
+Having the Rs configured as shown below gives the following configuration of the chip: hardware control mode, slave mode, S/PDIF transmitter data source is I2S and the I2S interface expects 16-bit data.  
+
+To make things work the decoder chip VS1053B is programmed to feed the WM8805 with 12.288MHz MCLK, 48kHz LRCK (MCLK divided by 256) and 16-bit audio data as configured.
+
+![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/raw/main/Doc/I2S%20to%20OPT%20Board%20Schematic.jpg)
+
+The controller board used on the mainboard is an inexpensive ESP32-T dev board equipped with an ESP32-Bit module (4MB Flash, 512kB RAM, no PSRAM, ultra small SMD WLAN antenna, I-PEX WLAN socket). Compared with other popular ESP32 dev boards the ESP32-T is slimmer and therefore even more breadboard compatible. I used it in the first flying test set and since it worked without issues I decided to keep it in the final project.
 
 For my next similar project (this time an old Denon TU-550 tuner case from the early 90's) I will use the [YB-ESP32-S3-ETH dev board](https://github.com/yellobyte/ESP32-DevBoards-Getting-Started/tree/main/boards/YB-ESP32-S3-ETH(YelloByte)) as it combines ESP32 + Ethernet + Wifi + debug port on a single small dev board. Both versions -N4 and -N8R8 will do but the latter provides 8MB PSRAM which allows buffering audio streams if that was needed. This board will allow to make the main board much smaller as well.
 
@@ -101,7 +112,7 @@ For my next similar project (this time an old Denon TU-550 tuner case from the e
 
 During the early stages of the project a lot of software updates were required and all were done via USB cable between ESP32-module and PC. However, at some stage the device rejoined the HiFi rack and opening the case now and then for a quick software update became a real pain in the butt. Hence the possibility to perform an ESP32 firmware update simply via SD card was added.  
 
-<p align="center"><img src="https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/Doc/Update%20per%20SD%20Card.JPG" height="250"/></p>  
+<p align="center"><img src="https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/raw/main/Doc/Update%20per%20SD%20Card.JPG" height="250"/></p>  
 
 Plenty of holes were drilled at the back of the case for better thermal management but they later proved unnecessary as the temps inside the case always stayed below 35 degs even with the lid on and all holes covered.  
 
@@ -115,7 +126,7 @@ Another troubling issue were the infrequent system resets after inserting a SD c
 
 Since mechanical rotary encoders (independent of their build quality) need to be debounced I decided very early in the project to perform it fully in hardware by using RC circuits (10k/100n) in combination with Schmitt-Trigger ICs (74HC14).  As expected, debouncing issues never surfaced and no line of code had to be wasted on this topic.  
 
-![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/blob/main/EagleFiles/Main-PCB/Schematic.JPG)  
+![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/raw/main/EagleFiles/Main-PCB/Schematic.JPG)  
 
 As visible in the main board schematic above, the inputs of all unused 74HC gates are kept grounded and not floating in order to avoid possible gate oscillation as their inputs are all high impedance (in contrast to e.g. old 7400's). Furthermore I added plenty of capacitors near the ICs and close to each socket, connector etc. in order to keep the power supply rail as clean as possible.
 
