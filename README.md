@@ -93,14 +93,14 @@ The special VS1053B decoder module (the red one in the middle) provides an I2S o
 
 If a digital audio output is not needed than any of the available cheap VS1053B decoder modules with 3.5mm jack socket (and without I2S socket) would do.  
 
-The WM8805 I2S to TOSLINK module (China) was the cheapest module version I could get as it lacks the COAX output socket, the crystal oscillator, some Cs, Rs and the power input socket. However, all this is not needed in this project. Important was the ability to put the WM8805 into HW mode by shifting around some Rs on the module. 
+The WM8805 I2S to TOSLINK module (China) was the cheapest module version I could get as it lacks the COAX output socket, the crystal oscillator, some Cs, Rs and the power input socket. However, all this is not needed in this project. Important was the ability to configure the WM8805 simply with Rs on the module and the presence of a TOSLINK output socket. 
 
-The WM8805 can be operated in either software or hardware control mode. The mode is simply determined by sampling the state of the SDIN pin. If SDIN is LOW
-during power up or hardware reset then the WM8805 switches into hardware control mode. In this mode most features will assume default values but some can be configured using external pins (SDOUT, SCLK, CSB, SWIFMODE). 
+The WM8805 can be operated in either software or hardware control mode. The mode is determined by sampling the state of the SDIN pin. If SDIN is LOW
+during power up or hardware reset then the WM8805 switches into hardware control mode. In this mode most features will assume default values but some can be configured using external pins (SDOUT, SCLK, CSB, GPO0). 
 
-Having the Rs configured as shown below gives the following configuration of the chip: hardware control mode, slave mode, S/PDIF transmitter data source is I2S and the I2S interface expects 16-bit data.  
+Having the respective Rs soldered as shown below gives the following configuration of the chip: hardware control mode (SDIN=LOW), slave mode (SCLK=LOW), S/PDIF transmitter data source is I2S (CSB=HIGH) and the I2S interface expects 16-bit data (GPO0=LOW, SDOUT=LOW).  
 
-To make things work the decoder chip VS1053B is programmed to feed the WM8805 with 12.288MHz MCLK, 48kHz LRCK (MCLK divided by 256) and 16-bit audio data as configured.
+To make the optical output work the decoder chip VS1053B is programmed to feed the WM8805 with 12.288MHz MCLK, 48kHz LRCK (MCLK divided by 256) and 16-bit audio data as configured.
 
 ![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/raw/main/Doc/I2S%20to%20OPT%20Board%20Schematic.jpg)
 
