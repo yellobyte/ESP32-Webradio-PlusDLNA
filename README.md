@@ -106,7 +106,7 @@ To make the optical output work the decoder chip VS1053B is programmed to feed t
 
 The controller board used on the mainboard is an inexpensive ESP32-T dev board equipped with an ESP32-Bit module (4MB Flash, 512kB RAM, no PSRAM, ultra small SMD WLAN antenna, I-PEX WLAN socket). Compared with other popular ESP32 dev boards the ESP32-T is slimmer and therefore even more breadboard compatible. I used it in the first flying test set and since it worked without issues I decided to keep it in the final project.
 
-For my next similar project (this time an old Denon TU-550 tuner case from the early 90's) I will use the [YB-ESP32-S3-ETH dev board](https://github.com/yellobyte/ESP32-DevBoards-Getting-Started/tree/main/boards/YB-ESP32-S3-ETH(YelloByte)) as it combines ESP32 + Ethernet + Wifi + debug port on a single small dev board. Both versions -N4 and -N8R8 will do but the latter provides 8MB PSRAM which allows buffering audio streams if that was needed. This board will allow to make the main board much smaller as well.
+For my next similar project (this time an old Denon TU-550 tuner case from the early 90's) I will use the [YB-ESP32-S3-ETH dev board](https://github.com/yellobyte/ESP32-DevBoards-Getting-Started/tree/main/boards/YB-ESP32-S3-ETH) as it combines ESP32 + Ethernet + Wifi + debug port on a single small dev board. Both versions -N4 and -N8R8 will do but the latter provides 8MB PSRAM which allows buffering audio streams if that was needed. This board will allow to make the main board much smaller as well.
 
 ![github](https://github.com/yellobyte/ESP32-Webradio-PlusDLNA/raw/main/Doc/Open%20Case%202.jpg)
 
