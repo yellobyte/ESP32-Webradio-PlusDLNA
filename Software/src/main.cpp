@@ -3059,9 +3059,9 @@ void  mk_lsan()
         winfo.ssid = strdup(lssid.c_str());             // Set ssid of element
         winfo.passphrase = strdup(lpw.c_str());
         // fall back
-        if (strcmp(winfo.ssid, "Moudi-Net2") == 0 &&
+        if (strcmp(winfo.ssid, "MySSID") == 0 &&
             *winfo.passphrase == '*') {
-          winfo.passphrase = strdup("katzeklo20112");
+          winfo.passphrase = strdup("MyPassword");
         }
         wifilist.push_back(winfo);                      // Add to list
         wifiMulti.addAP(winfo.ssid, winfo.passphrase);  // Add to wifi acceptable network list
