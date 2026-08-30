@@ -100,4 +100,8 @@
 09-04-2022, TJ: mp3play_html.h modified (ensure refresh of mp3 list)
 10-05-2022, TJ: Faster recovery after loss of station (timer10sec() -> timer5sec())
 14-07-2022, TJ: Required modifications for espressif32 frameworks >= V4.2.0
-15-07-2020, TJ: utf8ascii(), displayinfo() and limitString() improved
+15-07-2022, TJ: utf8ascii(), displayinfo() and limitString() improved
+29-08-2026, TJ: I2C section changed (we now use Wire lib instead of low level I2C functions),
+                use of Timezone lib (instead of C-lib time functions which are broken, e.g. localtime_r),
+                lots of minor changes to allow building with Arduino ESP32 framework >= V3.x.x
+                
