@@ -1,0 +1,149 @@
+--- Terminal on COM9 | 115200 8-N-1
+--- Available filters and text transformations: debug, default, direct, esp32_exception_decoder, hexlify, log2file, nocontrol, printable, send_on_enter, time
+--- More details at https://bit.ly/pio-monitor-filters
+--- Quit: Ctrl+C | Menu: Ctrl+T | Help: Ctrl+T followed by Ctrl+H
+20:21:58.725 > 
+20:21:58.726 > D: Starting ESP32-radio running on CPU 1 at 240 MHz. Version 30 Aug 2026 19:10. Total free memory 252604 Bytes.
+20:21:58.737 > D: Partition nvs found, 20480 bytes
+20:21:58.740 > D: Read 42 keys from NVS
+20:21:58.744 > D: pin_enc_clk set to 25
+20:21:58.746 > D: pin_enc_dt set to 26
+20:21:58.748 > D: pin_enc_sw set to 27
+20:21:58.751 > D: pin_tft_cs set to 15
+20:21:58.753 > D: pin_tft_dc set to 2
+20:21:58.755 > D: pin_sd_cs set to 17
+20:21:58.757 > D: pin_vs_cs set to 5
+20:21:58.759 > D: pin_vs_dcs set to 16
+20:21:58.761 > D: pin_vs_dreq set to 4
+20:21:58.763 > D: pin_shutdown set to -1
+20:21:58.765 > D: pin_spi_sck set to 18
+20:21:58.768 > D: pin_spi_miso set to 19
+20:21:58.770 > D: pin_spi_mosi set to 23
+20:21:58.772 > [   136][W][esp32-hal-gpio.c:197] __digitalRead(): IO 27 is not set as GPIO. digitalRead() may return an inconsistent value.
+20:21:58.783 > D: Start display
+20:21:59.630 > D: Found SD-Card. Update file on SD-Card ???
+20:21:59.652 > D: No update file on SD card.
+20:21:59.657 > D: Search for local IP in preferences
+20:21:59.661 > D: Prefs: ip = 192.168.1.99
+20:21:59.664 > D: Prefs: ip_dns = 192.168.1.1
+20:21:59.667 > D: Prefs: ip_gateway = 192.168.1.1
+20:21:59.670 > D: Prefs: ip_subnet = 255.255.255.0
+20:21:59.673 > D: initEthernet(true)
+20:22:00.339 > D: Ethernet link status: up
+20:22:00.443 > D: Local IP = 192.168.1.99
+20:22:00.447 > D: Gateway = 192.168.1.1, Subnet Mask = 255.255.255.0, DNS = 192.168.1.1
+20:22:00.455 > D: Command: clk_server with parameter ptbtime1.ptb.de
+20:22:00.459 > D: Command: clk_tzstring with parameter CEST-1CET,M3.2.0/2:00:00,M11.1.0/2:00:00
+20:22:00.467 > D: Command: ip with parameter 192.168.1.99
+20:22:00.470 > D: Command: ip_dns with parameter 192.168.1.1
+20:22:00.474 > D: Command: ip_gateway with parameter 192.168.1.1
+20:22:00.479 > D: Command: ip_subnet with parameter 255.255.255.0
+20:22:00.483 > D: Command: preset with parameter 13
+20:22:00.487 > D: Command: preset_00 with parameter mp3channels.webradio.antenne.de:80/antenne
+20:22:00.494 > D: Command: preset_01 with parameter mp3channels.webradio.antenne.de:80/oldies-but-goldies
+20:22:00.501 > D: Command: preset_02 with parameter mp3channels.webradio.antenne.de:80/chillout
+20:22:00.509 > D: Command: preset_03 with parameter mp3channels.webradio.antenne.de:80/lovesongs
+20:22:00.516 > D: Command: preset_04 with parameter mp3channels.webradio.antenne.de/90er-hits
+20:22:00.523 > D: Command: preset_05 with parameter stream.laut.fm/radio-regenbogen
+20:22:00.529 > D: Command: preset_06 with parameter stream.laut.fm/100deutschpop
+20:22:00.534 > D: Command: preset_07 with parameter stream.laut.fm/oldies
+20:22:00.540 > D: Command: preset_08 with parameter stream.laut.fm/classicrock
+20:22:00.545 > D: Command: preset_09 with parameter stream.laut.fm/romantik_literock
+20:22:00.551 > D: Command: preset_10 with parameter liveradio.swr.de/sw282p3/swr3/play.mp3
+20:22:00.558 > D: Command: preset_11 with parameter stream.rtlradio.de/rtl-de-national/mp3-192
+20:22:00.565 > D: Command: preset_12 with parameter stream.rtlradio.de/rtl-de-beste-hits/mp3-192
+20:22:00.572 > D: Command: preset_13 with parameter www.radioeins.de/frankfurt/livemp3
+20:22:00.578 > D: Command: preset_14 with parameter stream.srg-ssr.ch/m/drs3/mp3_128
+20:22:00.585 > D: Command: preset_15 with parameter stream.srg-ssr.ch/m/rsp/mp3_128
+20:22:00.591 > D: Command: preset_16 with parameter stream.streambase.ch/radiopilatus/mp3-192/direct
+20:22:00.598 > D: Command: preset_17 with parameter stream.streambase.ch/rsunshine/mp3-192/direct
+20:22:00.605 > D: Command: preset_18 with parameter stream3.themediasite.co.uk:8030/stream
+20:22:00.612 > D: Command: preset_19 with parameter sa47.scastream.com.au/2classicrock_32
+20:22:00.619 > D: Command: preset_20 with parameter sa47.scastream.com.au/6classicrock_32
+20:22:00.625 > D: Command: preset_21 with parameter ihr/WAQXFM
+20:22:00.630 > D: Command: preset_22 with parameter ihr/WLAVFM
+20:22:00.634 > D: Command: preset_23 with parameter ihr/WHTSFM
+20:22:00.638 > D: Command: srv_controlurl with parameter dev0/srv1/control
+20:22:00.643 > D: Command: srv_ip with parameter 192.168.1.11
+20:22:00.648 > D: Command: srv_mac with parameter 24:5E:BE:5D:2F:66
+20:22:00.652 > D: Command: srv_port with parameter 9000
+20:22:00.656 > D: Command: toneha with parameter 0
+20:22:00.659 > D: Command: tonehf with parameter 0
+20:22:00.662 > D: Command: tonela with parameter 0
+20:22:00.665 > D: Command: tonelf with parameter 0
+20:22:00.669 > D: Command: volume with parameter 90
+20:22:00.672 > D: Media server settings: mac="24:5E:BE:5D:2F:66", ip=192.168.1.11, port=9000, controlUrl="dev0/srv1/control"
+20:22:00.690 > D: findHighestPreset(): erg = 23
+20:22:00.811 > D: Slow SPI, Testing VS1053 read/write registers...
+20:22:01.055 > D: VS1053B loading patch V2.7
+20:22:01.984 > D: Fast SPI, Testing VS1053 read/write registers again...
+20:22:03.555 > D: VS1053B endFillByte is 0
+20:22:03.559 > D: VS1053B Status Register = 0x0040
+20:22:03.562 > D: VS1053B setting SS_REFERENCE_SEL bit(s) [see VS1053-patches.pdf, Chapter 1.1]
+20:22:03.569 > D: VS1053B Status Register now = 0x0141
+20:22:03.572 > D: VS1053B setting VU-Meter bit [see VS1053-patches.pdf, Chapter 1.2]
+20:22:03.578 > D: VS1053B Status Register now = 0x0341
+20:22:03.582 > D: VS1053B I2S interface enabled: MCLK active, Sample Rate = 48kHz
+20:22:03.588 > D: TOSLINK optical output ok.
+20:22:03.704 > D: Start server for commands on port 80
+20:22:06.706 > D: Rotary encoder is enabled (clk:25,dt:26,sw:27)
+20:22:06.712 > D: Sync TOD
+20:22:06.860 > D: NTP server response after 100 ms from ptbtime1.ptb.de
+20:22:06.866 > D: Seconds since 01.01.1970: 1788114125, actual time zone: "CEST"
+20:22:06.872 > D: Local Date/Time with time zone CEST applied -> 30.8.2026 20:22
+20:22:06.877 > D: Sync TOD successful, new value is 20:22
+20:22:06.889 > [  8260][I][esp32-hal-i2c-ng.c:112] i2cInit(): Initializing I2C Master: num=0 sda=32 scl=33 freq=100000
+20:22:06.899 > D: mp3loop: ini_block.newpreset[13] != currentPreset[-1]
+20:22:06.904 > D: mp3loop: New preset/file requested (13/0) from www.radioeins.de/frankfurt/livemp3
+20:22:06.911 > D: mp3loop: hostreq=true
+20:22:07.056 > D: Connect to host www.radioeins.de/frankfurt/livemp3
+20:22:07.061 > D: Server www.radioeins.de, port 80, extension /frankfurt/livemp3
+20:22:07.117 > D: Successfully connected to server
+20:22:07.150 > D: Switch to HEADER
+20:22:07.153 > D: Headerline: X-Varnish: 71606565
+20:22:07.156 > D: Headerline: Location: http://dispatcher.rndfnk.com/rbb/radioeins/frankfurt/mp3/mid
+20:22:07.163 > D: Redirection to new host
+20:22:07.166 > D: Headerline: Last-Modified: Sun, 30 Aug 2026 18:20:20 GMT
+20:22:07.171 > D: Headerline: Content-Length: 69
+20:22:07.174 > D: Headerline: Connection: close
+20:22:07.177 > D: mp3loop: hostreq=true
+20:22:07.331 > D: Connect to host dispatcher.rndfnk.com/rbb/radioeins/frankfurt/mp3/mid
+20:22:07.338 > D: Server dispatcher.rndfnk.com, port 80, extension /rbb/radioeins/frankfurt/mp3/mid
+20:22:07.406 > D: Successfully connected to server
+20:22:07.418 > D: Switch to HEADER
+20:22:07.421 > D: Headerline: Content-Length: 0
+20:22:07.424 > D: Headerline: Connection: close
+20:22:07.426 > D: Headerline: Access-Control-Allow-Methods: GET, OPTIONS, HEAD
+20:22:07.432 > D: Headerline: Access-Control-Allow-Origin: *
+20:22:07.436 > D: Headerline: Cache-Control: no-cache, no-store
+20:22:07.440 > D: Headerline: Location: http://d141.rndfnk.com/ard/rbb/radioeins/frankfurt/mp3/128/stream.mp3?cid=01FC1WJ7RC18GDCFQY27MPK8JJ&sid=3Ie9NT69n6Ph91UVB1Qg6xUTUF3&token=HxrNry-1H7sZy7fQUoLEdYTaaENtgoXe1JPqd3yP27o&tvf=T-UuDPi70BhkMTQxLnJuZGZuay5jb20
+20:22:07.462 > D: Redirection to new host
+20:22:07.464 > D: mp3loop: hostreq=true
+20:22:07.624 > D: Connect to host d141.rndfnk.com/ard/rbb/radioeins/frankfurt/mp3/128/stream.mp3?cid=01FC1WJ7RC18GDCFQY27MPK8JJ&sid=3Ie9NT69n6Ph91UVB1Qg6xUTUF3&token=HxrNry-1H7sZy7fQUoLEdYTaaENtgoXe1JPqd3yP27o&tvf=T-UuDPi70BhkMTQxLnJuZGZuay5jb20
+20:22:07.645 > D: Server d141.rndfnk.com, port 80, extension /ard/rbb/radioeins/frankfurt/mp3/128/stream.mp3?cid=01FC1WJ7RC18GDCFQY27MPK8JJ&sid=3Ie9NT69n6Ph91UVB1Qg6xUTUF3&token=HxrNry-1H7sZy7fQUoLEdYTaaENtgoXe1JPqd3yP27o&tvf=T-UuDPi70BhkMTQxLnJuZGZuay5jb20
+20:22:07.726 > D: Successfully connected to server
+20:22:07.744 > D: Switch to HEADER
+20:22:07.747 > D: Headerline: Server: rocketstreamingserver
+20:22:07.751 > D: Headerline: Content-Type: audio/mpeg
+20:22:07.755 > D: Headerline: icy-br: 128
+20:22:07.757 > D: Headerline: ice-audio-info: ice-samplerate=44100;ice-bitrate=128;ice-channels=2
+20:22:07.764 > D: utf8ascii() ---> Special Char: 0xC3, return: 0x00
+20:22:07.769 > D: utf8ascii() ---> Special Char: 0xBC, return: 0x75
+20:22:07.774 > D: Headerline: icy-description: Nur fur Erwachsene
+20:22:07.778 > D: Headerline: icy-genre: 
+20:22:07.780 > D: Headerline: icy-name: RadioEins Frankfurt
+20:22:07.784 > D: Headerline: icy-pub: 0
+20:22:07.787 > D: Headerline: icy-samplerate: 48000
+20:22:07.790 > D: Headerline: icy-channels: 2
+20:22:07.793 > D: Headerline: icy-url: https://www.radioeins.de
+20:22:07.797 > D: Headerline: Accept-Ranges: none
+20:22:07.800 > D: Headerline: Connection: Close
+20:22:07.803 > D: Headerline: icy-metaint: 16384
+20:22:07.806 > D: Headerline: Cache-Control: max-age=0, no-cache, no-store
+20:22:07.811 > D: Headerline: Expires: Sun, 30 Aug 2026 18:22:06 GMT
+20:22:07.816 > D: Headerline: Pragma: no-cache
+20:22:07.819 > D: Headerline: Access-Control-Allow-Origin: *
+20:22:07.823 > D: Headerline: Access-Control-Expose-Headers: Content-Type, icy-metaint, icy-br, ice-audio-info, icy-description, icy-genre, icy-name, icy-samplerate, icy-url
+20:22:07.837 > D: Headerline: Connection: close
+20:22:07.840 > D: Switch to DATA, bitrate is 128kbps, metaint is 16384
+20:22:07.975 > D: StreamTitle='Tausend Texte Tief mit Simon Brauer';json='{}';
