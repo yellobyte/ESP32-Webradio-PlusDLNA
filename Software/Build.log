@@ -1,0 +1,183 @@
+Executing task: C:\Users\tj\.platformio\penv\Scripts\platformio.exe run 
+
+Processing release (platform: https://github.com/pioarduino/platform-espressif32/releases/download/stable/platform-espressif32.zip; board: esp32dev; framework: arduino)
+-----------------------------------------------------------------------------------------------------------------------------------------------------------------
+Verbose mode can be enabled via `-v, --verbose` option
+CONFIGURATION: https://docs.platformio.org/page/boards/espressif32/esp32dev.html
+PLATFORM: Espressif 32 (55.3.311) > Espressif ESP32 Dev Module
+HARDWARE: ESP32 240MHz, 320KB RAM, 4MB Flash
+DEBUG: Current (cmsis-dap) External (cmsis-dap, esp-bridge, esp-prog, esp-prog-2, iot-bus-jtag, jlink, minimodule, olimex-arm-usb-ocd, olimex-arm-usb-ocd-h, olimex-arm-usb-tiny-h, olimex-jtag-tiny, tumpa)
+PACKAGES: 
+ - contrib-piohome @ 3.4.4 
+ - framework-arduinoespressif32 @ 3.3.11 
+ - framework-arduinoespressif32-libs @ 5.5.5+sha.b774170ff46 
+ - tool-esp-rom-elfs @ 2024.10.11 
+ - tool-esptoolpy @ 5.3.0 
+ - tool-xtensa-esp-elf-gdb @ 17.1.0+20260402 
+ - toolchain-xtensa-esp-elf @ 14.2.0+20260121
+LDF: Library Dependency Finder -> https://bit.ly/configure-pio-ldf
+LDF Modes: Finder ~ chain, Compatibility ~ soft
+Found 52 compatible libraries
+Scanning dependencies...
+Dependency Graph
+|-- Adafruit BusIO @ 1.17.4
+|-- Ethernet @ 2.0.2
+|-- Adafruit ST7735 and ST7789 Library @ 1.11.0
+|-- SoapESP32 @ 1.4.3
+|-- Timezone @ 1.3.1
+|-- Wire @ 3.3.11
+|-- ArduinoOTA @ 3.3.11
+|-- ESPmDNS @ 3.3.11
+|-- FS @ 3.3.11
+|-- SD @ 3.3.11
+|-- SPI @ 3.3.11
+|-- Update @ 3.3.11
+|-- WiFi @ 3.3.11
+Building in release mode
+Compiling .pio\build\release\lib096\Wire\Wire.cpp.o
+Compiling .pio\build\release\libc43\SPI\SPI.cpp.o
+Compiling .pio\build\release\lib713\Adafruit BusIO\Adafruit_BusIO_Register.cpp.o
+Compiling .pio\build\release\lib713\Adafruit BusIO\Adafruit_GenericDevice.cpp.o
+Compiling .pio\build\release\lib713\Adafruit BusIO\Adafruit_I2CDevice.cpp.o
+Compiling .pio\build\release\lib713\Adafruit BusIO\Adafruit_SPIDevice.cpp.o
+Compiling .pio\build\release\lib3c1\Ethernet\Dhcp.cpp.o
+Compiling .pio\build\release\lib3c1\Ethernet\Dns.cpp.o
+Compiling .pio\build\release\lib3c1\Ethernet\Ethernet.cpp.o
+Compiling .pio\build\release\lib3c1\Ethernet\EthernetClient.cpp.o
+Compiling .pio\build\release\lib3c1\Ethernet\EthernetServer.cpp.o
+Compiling .pio\build\release\lib3c1\Ethernet\EthernetUdp.cpp.o
+Compiling .pio\build\release\lib3c1\Ethernet\socket.cpp.o
+Compiling .pio\build\release\lib3c1\Ethernet\utility\w5100.cpp.o
+Compiling .pio\build\release\libb26\Adafruit GFX Library\Adafruit_GFX.cpp.o
+Compiling .pio\build\release\libb26\Adafruit GFX Library\Adafruit_GrayOLED.cpp.o
+Compiling .pio\build\release\libb26\Adafruit GFX Library\Adafruit_SPITFT.cpp.o
+Compiling .pio\build\release\libb26\Adafruit GFX Library\glcdfont.c.o
+Compiling .pio\build\release\libe58\Adafruit ST7735 and ST7789 Library\Adafruit_ST7735.cpp.o
+Compiling .pio\build\release\libe58\Adafruit ST7735 and ST7789 Library\Adafruit_ST7789.cpp.o
+Compiling .pio\build\release\libe58\Adafruit ST7735 and ST7789 Library\Adafruit_ST7796S.cpp.o
+Compiling .pio\build\release\libe58\Adafruit ST7735 and ST7789 Library\Adafruit_ST77xx.cpp.o
+Compiling .pio\build\release\lib4ec\Network\NetworkClient.cpp.o
+Compiling .pio\build\release\lib4ec\Network\NetworkEvents.cpp.o
+Compiling .pio\build\release\lib4ec\Network\NetworkInterface.cpp.o
+Compiling .pio\build\release\lib4ec\Network\NetworkManager.cpp.o
+Compiling .pio\build\release\lib4ec\Network\NetworkServer.cpp.o
+Compiling .pio\build\release\lib4ec\Network\NetworkUdp.cpp.o
+Compiling .pio\build\release\lib520\WiFi\AP.cpp.o
+Compiling .pio\build\release\lib520\WiFi\STA.cpp.o
+Compiling .pio\build\release\lib520\WiFi\WiFi.cpp.o
+Compiling .pio\build\release\lib520\WiFi\WiFiAP.cpp.o
+Compiling .pio\build\release\lib520\WiFi\WiFiGeneric.cpp.o
+Compiling .pio\build\release\lib520\WiFi\WiFiMulti.cpp.o
+Compiling .pio\build\release\lib520\WiFi\WiFiSTA.cpp.o
+Compiling .pio\build\release\lib520\WiFi\WiFiScan.cpp.o
+Compiling .pio\build\release\lib702\SoapESP32\MiniXPath.cpp.o
+Compiling .pio\build\release\lib702\SoapESP32\SoapESP32.cpp.o
+Compiling .pio\build\release\lib42b\Time\DateStrings.cpp.o
+Compiling .pio\build\release\lib42b\Time\Time.cpp.o
+Compiling .pio\build\release\lib1af\Timezone\Timezone.cpp.o
+Compiling .pio\build\release\lib648\Hash\PBKDF2_HMACBuilder.cpp.o
+Compiling .pio\build\release\lib648\Hash\SHA1Builder.cpp.o
+Compiling .pio\build\release\lib648\Hash\SHA2Builder.cpp.o
+Compiling .pio\build\release\lib648\Hash\SHA3Builder.cpp.o
+Compiling .pio\build\release\lib77c\Update\HttpsOTAUpdate.cpp.o
+Compiling .pio\build\release\lib77c\Update\Updater.cpp.o
+Compiling .pio\build\release\lib77c\Update\Updater_Signing.cpp.o
+Compiling .pio\build\release\libc77\ESPmDNS\ESPmDNS.cpp.o
+Compiling .pio\build\release\lib1c8\ArduinoOTA\ArduinoOTA.cpp.o
+Compiling .pio\build\release\libf4f\FS\FS.cpp.o
+Compiling .pio\build\release\libf4f\FS\vfs_api.cpp.o
+Compiling .pio\build\release\lib042\SD\SD.cpp.o
+Compiling .pio\build\release\lib042\SD\sd_diskio.cpp.o
+Compiling .pio\build\release\lib042\SD\sd_diskio_crc.c.o
+Compiling .pio\build\release\src\main.cpp.o
+Building .pio\build\release\bootloader.bin
+Generating partitions .pio\build\release\partitions.bin
+Compiling .pio\build\release\FrameworkArduino\ColorFormat.c.o
+esptool v5.3.0
+Creating ESP32 image...
+Merged 2 ELF sections.
+Successfully created ESP32 image.
+Compiling .pio\build\release\FrameworkArduino\Esp.cpp.o
+Compiling .pio\build\release\FrameworkArduino\FirmwareMSC.cpp.o
+Compiling .pio\build\release\FrameworkArduino\FunctionalInterrupt.cpp.o
+Compiling .pio\build\release\FrameworkArduino\HEXBuilder.cpp.o
+Compiling .pio\build\release\FrameworkArduino\HWCDC.cpp.o
+Compiling .pio\build\release\FrameworkArduino\HardwareSerial.cpp.o
+Compiling .pio\build\release\FrameworkArduino\HashBuilder.cpp.o
+Compiling .pio\build\release\FrameworkArduino\IPAddress.cpp.o
+Compiling .pio\build\release\FrameworkArduino\MD5Builder.cpp.o
+Compiling .pio\build\release\FrameworkArduino\MacAddress.cpp.o
+Compiling .pio\build\release\FrameworkArduino\Print.cpp.o
+Compiling .pio\build\release\FrameworkArduino\Stream.cpp.o
+Compiling .pio\build\release\FrameworkArduino\StreamString.cpp.o
+Compiling .pio\build\release\FrameworkArduino\StringUtils.cpp.o
+Compiling .pio\build\release\FrameworkArduino\Tone.cpp.o
+Compiling .pio\build\release\FrameworkArduino\USB.cpp.o
+Compiling .pio\build\release\FrameworkArduino\USBCDC.cpp.o
+Compiling .pio\build\release\FrameworkArduino\USBMSC.cpp.o
+Compiling .pio\build\release\FrameworkArduino\WMath.cpp.o
+Compiling .pio\build\release\FrameworkArduino\WString.cpp.o
+Compiling .pio\build\release\FrameworkArduino\base64.cpp.o
+Compiling .pio\build\release\FrameworkArduino\cbuf.cpp.o
+Compiling .pio\build\release\FrameworkArduino\chip-debug-report.cpp.o
+Compiling .pio\build\release\FrameworkArduino\esp32-hal-adc.c.o
+Compiling .pio\build\release\FrameworkArduino\esp32-hal-bt.c.o
+Compiling .pio\build\release\FrameworkArduino\esp32-hal-cpu.c.o
+Compiling .pio\build\release\FrameworkArduino\esp32-hal-dac.c.o
+Compiling .pio\build\release\FrameworkArduino\esp32-hal-gpio.c.o
+Compiling .pio\build\release\FrameworkArduino\esp32-hal-hosted.c.o
+Compiling .pio\build\release\FrameworkArduino\esp32-hal-i2c-ng.c.o
+Compiling .pio\build\release\FrameworkArduino\esp32-hal-i2c-slave.c.o
+Compiling .pio\build\release\FrameworkArduino\esp32-hal-i2c.c.o
+Compiling .pio\build\release\FrameworkArduino\esp32-hal-ldo.c.o
+Compiling .pio\build\release\FrameworkArduino\esp32-hal-ledc.c.o
+Compiling .pio\build\release\FrameworkArduino\esp32-hal-log-wrapper.c.o
+Compiling .pio\build\release\FrameworkArduino\esp32-hal-matrix.c.o
+Compiling .pio\build\release\FrameworkArduino\esp32-hal-misc.c.o
+Compiling .pio\build\release\FrameworkArduino\esp32-hal-periman.c.o
+Compiling .pio\build\release\FrameworkArduino\esp32-hal-psram.c.o
+Compiling .pio\build\release\FrameworkArduino\esp32-hal-rgb-led.c.o
+Compiling .pio\build\release\FrameworkArduino\esp32-hal-rmt.c.o
+Compiling .pio\build\release\FrameworkArduino\esp32-hal-sigmadelta.c.o
+Compiling .pio\build\release\FrameworkArduino\esp32-hal-spi.c.o
+Compiling .pio\build\release\FrameworkArduino\esp32-hal-time.c.o
+Compiling .pio\build\release\FrameworkArduino\esp32-hal-timer.c.o
+Compiling .pio\build\release\FrameworkArduino\esp32-hal-tinyusb.c.o
+Compiling .pio\build\release\FrameworkArduino\esp32-hal-touch-ng.c.o
+Compiling .pio\build\release\FrameworkArduino\esp32-hal-touch.c.o
+Compiling .pio\build\release\FrameworkArduino\esp32-hal-uart.c.o
+Compiling .pio\build\release\FrameworkArduino\firmware_msc_fat.c.o
+Compiling .pio\build\release\FrameworkArduino\freertos_stats.cpp.o
+Compiling .pio\build\release\FrameworkArduino\idf_openthread_mpool_wrapper.c.o
+Compiling .pio\build\release\FrameworkArduino\libb64\cdecode.c.o
+Compiling .pio\build\release\FrameworkArduino\libb64\cencode.c.o
+Compiling .pio\build\release\FrameworkArduino\main.cpp.o
+Compiling .pio\build\release\FrameworkArduino\stdlib_noniso.c.o
+Compiling .pio\build\release\FrameworkArduino\wiring_pulse.c.o
+Compiling .pio\build\release\FrameworkArduino\wiring_shift.c.o
+Archiving .pio\build\release\libFrameworkArduino.a
+Linking .pio\build\release\firmware.elf
+Firmware metrics can not be shown. Set the terminal codepage to "utf-8" or "cp65001" on Windows.
+Retrieving maximum program size .pio\build\release\firmware.elf
+Checking size .pio\build\release\firmware.elf
+Advanced Memory Usage is available via "PlatformIO Home > Project Inspect"
+RAM:   [==        ]  21.6% (used 70644 bytes from 327680 bytes)
+Flash: [======    ]  62.5% (used 1229553 bytes from 1966080 bytes)
+Building .pio\build\release\firmware.bin
+esptool v5.3.0
+Creating ESP32 image...
+Merged 3 ELF sections.
+Successfully created ESP32 image.
+Creating binary "firmware.factory.bin" with:
+    Offset   | File
+ -  0x1000   | bootloader.bin
+ -  0x8000   | partitions.bin
+ -  0xe000   | boot_app0.bin
+ -  0x10000  | firmware.bin
+Successfully created combined binary image.
+================================================================= [SUCCESS] Took 34.13 seconds =================================================================
+
+Environment    Status    Duration
+-------------  --------  ------------
+release        SUCCESS   00:00:34.128
+================================================================== 1 succeeded in 00:00:34.128 ==================================================================
