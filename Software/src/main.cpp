@@ -26,29 +26,23 @@
 //*   - handling of more special chars in webradio streams (each channels seems to have a different     *
 //*     utf8 conversion table or philosophy)                                                            *
 //*   - countless minor changes & improvements, bugfixing                                               *
-//*   - regular modifications for new espressif32 frameworks releases                                   *
+//*   - regular modifications for new Espressif ESP32 framework releases                                *
 //*  Have a look at "Revision history.txt" in the doc folder.                                           *
 //*                                                                                                     *
-//*  July 2022, TJ                                                                                      *
+//*  August 2026, TJ                                                                                    *
 //*                                                                                                     *
 //*******************************************************************************************************
 //
-// The standard Arduino Ethernet Library V2.0.x causes errors when compiled for an ESP32.
-// File Ethernet.h needs to be modified. 
-// Change line "class EthernetServer : public Server {"  to  "class EthernetServer : public Print {"
-// and it will compile without problems.
+// In Ethernet.h define MAX_SOCK_NUM 4 and ETHERNET_LARGE_BUFFERS for better connection stability.
 //
-// In Ethernet.h define MAX_SOCK_NUM 4  and  ETHERNET_LARGE_BUFFERS for better connection stability.
-//
-// SPI speed for the Ethernet Card is default 14MHz in W5100.h (Arduino Ethernet Library V2.0.0).
+// SPI speed for the Ethernet Card is default 14MHz in W5100.h (Arduino Ethernet Library V2.0.x).
 //
 // Class 2 SD cards support at least 2MB/s (16Mbit/s) speed. Only 4MHz SPI clock speed is used here
 // for stability reasons (long wires to SD-module).
 //
-// The VSPI interface is used for VS1053, TFT and SD. The I2C Arduino "Wire" Library was initially used for the
-// extender card but proofed to be very unstable. Using low level I2C functions instead works a treat.
+// The VSPI interface is used for VS1053, TFT and SD. 
 //
-// Wiring. 
+// Wiring: 
 // Most pins (except 18,19,23 of the SPI interface) can be configured in the config page of the web interface.
 // ESP32dev Signal  Wired to LCD    Wired to VS1053  SDCARD  Ethernet   Wired to the rest
 // -------- ------  -------------   ---------------  ------  ---------  ------
@@ -81,7 +75,7 @@
 //
 
 // Define the version number, also used for webserver as Last-Modified header:
-#define VERSION "11 Jan 2024 09:15"
+#define VERSION "30 Aug 2026 19:10"
 //
 // Defined in platform.ini as it affects soapESP32 too !
 //#define USE_ETHERNET                   // Use Ethernet/LAN instead of WiFi builtin
@@ -99,48 +93,99 @@
 #define SD_UPDATES                     // SW-Updates via SD-Card during power-up
 #define ENABLE_ESP32_HW_WDT            // Enable ESP32 Hardware Watchdog
 #define FRONT_PANEL_BUTTONS            // Use front panel buttons
+#define USE_TIMEZONE_LIB               // Use timezone lib instead of broken C-lib posix functions (e.g. localtime_r)
 
 #include <Arduino.h>
-//#include <FS.h>
-//#include <SPI.h>
+#include <FS.h>
+#include <SPI.h>
 #include <SD.h>
 #include <nvs.h>
-#include <stdio.h>
-#include <string.h>
+
 #ifdef SD_UPDATES
 #include <Update.h>
 #define UPDATE_FILE_NAME "/firmware.bin"
 #define TEST_FILE_NAME "/testfile.txt"
 #endif
-#ifndef USE_ETHERNET
-#include <WiFiMulti.h>
-#include <ESPmDNS.h>
-#include <ArduinoOTA.h>
-#else
-#include <WiFi.h>
-#include <vector>
-#endif
+
 #include <time.h>
-#include <freertos/queue.h>
-#include <freertos/task.h>
-#ifdef ENABLE_ESP32_HW_WDT
-#include <esp_task_wdt.h>
-#endif
 #include <esp_partition.h>
-#include "driver/i2c.h"
+
+#ifdef ENABLE_ESP32_HW_WDT
+// ESP32 hardware watchdog
+#include <esp_task_wdt.h>
+#define WDT_TIMEOUT_MS 5000
+#endif
+
+#ifdef FRONT_PANEL_BUTTONS
+#include "Wire.h"
+// PCF8574 Addresses & assigned I2C Pins
+#define PCF8574_1_ADDR (0x20)
+#define PCF8574_2_ADDR (0x21)
+#define I2C_SDA_PIN  32
+#define I2C_SCL_PIN  33
+#endif
 
 #ifdef USE_ETHERNET
+#include <WiFi.h>
+#include <vector>
 #include <Ethernet.h>
 #include <EthernetUdp.h>
-byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
+byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xEE};
 #define _claimSPI(p)  claimSPI(p)    // mp3client.read() sometimes returns garbage without it
 #define _releaseSPI() releaseSPI()
 #else
 #define _claimSPI(p)
 #define _releaseSPI()
+#include <WiFiMulti.h>
+#include <ESPmDNS.h>
+#include <ArduinoOTA.h>
+#define MY_WIFI_SSID     "My-Wifi-SSID"
+#define MY_WIFI_PASSWORD "My-Wifi-Password" // fallback if passphrase = "*****" in prefs
 #endif
+
 #ifdef ENABLE_SOAP
 #include "SoapESP32.h"
+#endif
+
+#ifdef USE_ETHERNET
+#ifdef USE_TIMEZONE_LIB
+#include <Timezone.h>
+// Australia Eastern Time Zone (Sydney, Melbourne)
+// TimeChangeRule aEDT = {"AEDT", First, Sun, Oct, 2, 660};    // UTC + 11 hours
+// TimeChangeRule aEST = {"AEST", First, Sun, Apr, 3, 600};    // UTC + 10 hours
+// Timezone myTimezone(aEDT, aEST);
+
+// Central European Time (Frankfurt, Paris, Zürich)
+TimeChangeRule CEST = {"CEST", Last, Sun, Mar, 2, 120};     // Central European Summer Time
+TimeChangeRule CET = {"CET ", Last, Sun, Oct, 3, 60};       // Central European Standard Time
+Timezone myTimezone(CEST, CET);
+
+// United Kingdom (London, Belfast)
+// TimeChangeRule BST = {"BST", Last, Sun, Mar, 1, 60};        // British Summer Time
+// TimeChangeRule GMT = {"GMT", Last, Sun, Oct, 2, 0};         // Standard Time
+// Timezone myTimezone(BST, GMT);
+
+// UTC
+// TimeChangeRule utcRule = {"UTC", Last, Sun, Mar, 1, 0};     // UTC
+// Timezone myTimezone(utcRule);
+
+// US Eastern Time Zone (New York, Detroit)
+// TimeChangeRule usEDT = {"EDT", Second, Sun, Mar, 2, -240};  // Eastern Daylight Time = UTC - 4 hours
+// TimeChangeRule usEST = {"EST", First, Sun, Nov, 2, -300};   // Eastern Standard Time = UTC - 5 hours
+// Timezone myTimezone(usEDT, usEST);
+
+// US Central Time Zone (Chicago, Houston)
+// TimeChangeRule usCDT = {"CDT", Second, Sun, Mar, 2, -300};
+// TimeChangeRule usCST = {"CST", First, Sun, Nov, 2, -360};
+// Timezone myTimezone(usCDT, usCST);
+
+// US Mountain Time Zone (Denver, Salt Lake City)
+// TimeChangeRule usMDT = {"MDT", Second, Sun, Mar, 2, -360};
+// TimeChangeRule usMST = {"MST", First, Sun, Nov, 2, -420};
+// Timezone myTimezone(usMDT, usMST);
+#else
+#define NTP_TZ_STRING_DEFAULT "CEST-1CET,M3.2.0/2:00:00,M11.1.0/2:00:00"  // Posix TZ string for Central Europe
+#endif
 #endif
 
 // comment out if ESP_EARLY_LOGx not needed
@@ -148,10 +193,10 @@ byte mac[] = {0xDE, 0xAD, 0xBE, 0xEF, 0xFE, 0xED};
 //#include "esp_log.h"
 //DRAM_ATTR static const char* TAG = "ESP32Radio";
 
-// ESP32 hardware watchdog timeout
-#define WDT_TIMEOUT 60
+// 100ms timeout for function timer100
+#define TIMEOUT_MS 100
 // Number of entries in the queue
-#define QSIZ 1000
+#define QSIZE 1000
 // Debug buffer size
 #define DEBUG_BUFFER_SIZE 250
 // Access point name if connection to WiFi network fails.  Also the hostname for WiFi and OTA.
@@ -181,23 +226,17 @@ IPAddress subnet(255, 255, 255, 0);
 IPAddress primaryDNS(192, 168, 1, 1);
 IPAddress secondaryDNS(195, 186, 4, 162);     //optional
 #define NTP_SERVER_DEFAULT "ptbtime1.ptb.de"  // time-a.timefreq.bldrdoc.gov, pool.ntp.org, etc.....
-#ifdef USE_ETHERNET
-#define NTP_TZ_STRING_DEFAULT "CET-1CEST-2,M3.5.0/02:00:00,M10.5.0/03:00:00"
-#endif
+
 // Position (column) in topline relative to end
 #define MUTEPOS     -42
 #define SDSTATUSPOS -49
+
 #if defined VU_METER && defined LOAD_VS1053_PATCH
 #define VUMETERPOS  -61
 #endif
-// I2C stuff: PCF8574 Addresses & assigned Pins
-#define PCF8574_1_ADDR (0x20)
-#define PCF8574_2_ADDR (0x21)
-#define I2C_SDA_PIN  32
-#define I2C_SCL_PIN  33
+
 #ifdef ENABLE_SOAP
-// Default SOAP/DLNA media server settings
-// parameters for Twonky media server on QNAP TS-253D
+// Default SOAP/DLNA parameters for Twonky media server on QNAP TS-253D
 #define MEDIASERVER_DEFAULT_MAC "24:5E:BE:5D:2F:66"
 #define MEDIASERVER_DEFAULT_IP 192,168,1,11
 #define MEDIASERVER_DEFAULT_PORT 9000
@@ -261,7 +300,7 @@ struct ini_struct
   uint8_t        reqvol;                             // Requested volume
   uint8_t        rtone[4];                           // Requested bass/treble settings
   int8_t         newpreset;                          // Requested preset
-#ifdef USE_ETHERNET
+#if !defined(USE_TIMEZONE_LIB) && defined(USE_ETHERNET)
   String         clk_tzstring;                       // Posix timezone string
 #else
   int8_t         clk_offset;                         // Offset in hours with respect to UTC
@@ -365,6 +404,7 @@ enum enum_repeat_mode { NOREPEAT, SONG, DIRECTORY, RANDOM }; // repeat mode
 int               DEBUG = 1;                             // Debug on/off
 int               numSsid;                               // Number of available WiFi networks
 ini_struct        ini_block;                             // Holds configurable data
+
 #ifndef USE_ETHERNET
 WiFiMulti         wifiMulti;                             // Possible WiFi networks
 #if defined(ENABLE_CMDSERVER) && !defined(PORT23_ACTIVE)
@@ -393,15 +433,19 @@ EthernetUDP       udpclient;                             // A UDP instance used 
 EthernetLinkStatus lstat;                                // Ethernet link status
 bool              reInitEthernet = false;                // W5500 board re-initialization needed
 #endif
+
 TaskHandle_t      mainTask;                              // Taskhandle for main task
 TaskHandle_t      xplayTask;                             // Task handle for play task
 TaskHandle_t      xspfTask;                              // Task handle for special functions
+
 #ifdef FRONT_PANEL_BUTTONS													
 TaskHandle_t      xextenderTask;                         // Task handle for communication with PCF8574 ICs
 #endif			
+
 #if defined VU_METER && defined LOAD_VS1053_PATCH
 TaskHandle_t      xvumeterTask;                          // Task handle for displaying vu-meter value
 #endif
+
 SemaphoreHandle_t SPIsem = NULL;                         // For exclusive SPI usage
 hw_timer_t*       timer = NULL;                          // For timer
 char              timetxt[6];                            // Converted timeinfo
@@ -1409,6 +1453,30 @@ char* dbgprint(const char* format, ...)
 
 #ifdef ENABLE_SOAP
 //**************************************************************************************************
+//                            B R O W S E M E D I A S E R V E R                                    *
+//**************************************************************************************************
+// Browses the defined media server and removes unwanted element from the returned list.           *
+// Returns false in case of error.                                                                 *
+//**************************************************************************************************
+bool browseMediaServer(const char *objectId, soapObjectVect_t *browseResult, const uint32_t startingIndex = 0)
+{
+  bool ret = soap.browseServer(0, objectId, browseResult, startingIndex);
+  if (ret) { 
+    // browsing media server was successful though returned list can be empty
+    if (browseResult->size() > 0) {
+      // erase unwanted element
+      for (int i = 0; i < browseResult->size(); i++) {
+        if (browseResult->operator[](i).name.indexOf("stem Volu") >= 0) {
+          browseResult->erase(browseResult->begin() + i);  
+          break;
+        }
+      }
+    }
+  }
+  return ret;
+}
+
+//**************************************************************************************************
 //                           N E X T S O A P F I L E I N D E X                                     *
 //**************************************************************************************************
 // Select the next or previous mp3 file from SOAP browse list. We wrap around if needed. If        *
@@ -1418,7 +1486,7 @@ char* dbgprint(const char* format, ...)
 int16_t nextSoapFileIndex(int16_t inx, int16_t delta)
 {
   int i, ret = -1;
-  String uriLc((char *)0);                          // no allocation yet
+  String uriLc((char *)0), protInfoLc((char *)0);   // no allocation yet
 
   if (hostreq) return 0;                            // no action when host request already set
 
@@ -1433,9 +1501,11 @@ int16_t nextSoapFileIndex(int16_t inx, int16_t delta)
     for (i = 0; i < soapList.size(); i++) {
       if (soapList[i].isDirectory) continue;
       if (soapList[i].fileType != fileTypeAudio) continue;
-        uriLc = soapList[i].uri;
-        uriLc.toLowerCase();
-      if (!uriLc.endsWith(".mp3")) continue;
+      protInfoLc = soapList[i].protInfo;
+      protInfoLc.toLowerCase();
+      uriLc = soapList[i].uri;
+      uriLc.toLowerCase();
+      if (protInfoLc.indexOf("mp3") < 0 && !uriLc.endsWith(".mp3")) continue;
       ret = i;
       break;
     }
@@ -1455,9 +1525,11 @@ int16_t nextSoapFileIndex(int16_t inx, int16_t delta)
       }
       if (soapList[i].isDirectory) continue;
       if (soapList[i].fileType != fileTypeAudio) continue;
+        protInfoLc = soapList[i].protInfo;
+        protInfoLc.toLowerCase();      
         uriLc = soapList[i].uri;
         uriLc.toLowerCase();
-      if (!uriLc.endsWith(".mp3")) continue;
+      if (protInfoLc.indexOf("mp3") < 0 && !uriLc.endsWith(".mp3")) continue;
       ret = i;
       break;
     }
@@ -2012,8 +2084,9 @@ void IRAM_ATTR timer100()
   sv int16_t eqcount = 0;
   sv int16_t oldclickcount = 0;                  // for detecting difference
 
-  if (++count5sec == 50 ) {                      // 5 seconds passed?
-    timer5sec();                                 // do 5 second procedure
+  count5sec = count5sec + 1;
+  if (count5sec == 50 ) {                        // 5 seconds passed?
+    timer5sec();                                 // run 5 second procedure
     count5sec = 0;                               // reset count
   }
   if ((count5sec % 10) == 0) {                   // one second over?
@@ -2029,13 +2102,15 @@ void IRAM_ATTR timer100()
     }
   }
   // handle rotary encoder, inactivity counter will be reset by encoder interrupt
-  if (++enc_inactivity == 36000) {               // count inactivity time
+  enc_inactivity = enc_inactivity + 1;
+  if (enc_inactivity == 36000) {                 // count inactivity time
     enc_inactivity = 1000;                       // prevent wrap
   }
   // now detection of single/double click of rotary encoder switch
   if (clickcount) {                              // any click?
     if (oldclickcount == clickcount) {           // stable situation?
-      if (++eqcount == 5) {                      // long time stable?
+      eqcount = eqcount + 1;
+      if (eqcount == 5) {                        // long time stable?
         eqcount = 0;
         if (clickcount > 2) {                    // triple click?
           //tripleclick = true;
@@ -2080,12 +2155,12 @@ void IRAM_ATTR isr_IR()
   t0 = t1;                                          // Save for next compare
   if ((intval > 300) && (intval < 800)) {           // Short pulse?
     ir_locvalue = ir_locvalue << 1;                 // Shift in a "zero" bit
-    ir_loccount++;                                  // Count number of received bits
+    ir_loccount = ir_loccount + 1;                  // Count number of received bits
     ir_0 = (ir_0 * 3 + intval) / 4;                 // Compute average durartion of a short pulse
   }
   else if ((intval > 1400) && (intval < 1900)) {    // Long pulse?
     ir_locvalue = (ir_locvalue << 1) + 1;           // Shift in a "one" bit
-    ir_loccount++;                                  // Count number of received bits
+    ir_loccount = ir_loccount + 1;                  // Count number of received bits
     ir_1 = (ir_1 * 3 + intval) / 4;                 // Compute average durartion of a short pulse
   }
   else if (ir_loccount == 65) {                     // Value is correct after 65 level changes
@@ -2130,7 +2205,7 @@ void IRAM_ATTR isr_enc_switch()
         longClick = true;                                 // yes, register longClick
       }
       else {
-        clickcount++;                                     // yes, click detected
+        clickcount = clickcount + 1;                      // yes, click detected
       }
       enc_inactivity = 0;                                 // not inactive anymore
     }
@@ -2146,10 +2221,10 @@ void IRAM_ATTR isr_enc_switch()
 void IRAM_ATTR isr_enc_turn()
 {
   if (digitalRead(ini_block.enc_clk_pin) == digitalRead(ini_block.enc_dt_pin)) {
-    rotationcount++;
+    rotationcount = rotationcount + 1;
   }
   else {
-    rotationcount--;
+    rotationcount = rotationcount - 1;
   }
   enc_inactivity = 0;
 }
@@ -2672,6 +2747,7 @@ String readhostfrompref()
 
   while ((contents = readhostfrompref (ini_block.newpreset)) == "") {
     if (++maxtry > 99) {
+      ini_block.newpreset = 0;
       return "";
     }
     if (++ini_block.newpreset > 99) {                  // Next or wrap to 0
@@ -2890,7 +2966,7 @@ String readPrefs(bool output)
   }
   if (i == 0) {
     outstr = String("No preferences found.\n"
-                    "Use defaults or run Esp32_radio_init first.\n");
+                    "Use defaults or run Esp32_radio_init.ino first.\n");
   }
   return outstr;
 }
@@ -3059,9 +3135,9 @@ void  mk_lsan()
         winfo.ssid = strdup(lssid.c_str());             // Set ssid of element
         winfo.passphrase = strdup(lpw.c_str());
         // fall back
-        if (strcmp(winfo.ssid, "MySSID") == 0 &&
+        if (strcmp(winfo.ssid, MY_WIFI_SSID) == 0 &&
             *winfo.passphrase == '*') {
-          winfo.passphrase = strdup("MyPassword");
+          winfo.passphrase = strdup(MY_WIFI_PASSWORD);
         }
         wifilist.push_back(winfo);                      // Add to list
         wifiMulti.addAP(winfo.ssid, winfo.passphrase);  // Add to wifi acceptable network list
@@ -3527,17 +3603,17 @@ void setup()
     dbgprint("Partition %s found, %d bytes", partname, nvs->size);
   }
   else {
-    dbgprint("Partition %s not found!", partname);      // Very unlikely...
-    while (true);                                       // Impossible to continue
+    dbgprint("Partition %s not found!", partname);      // very unlikely...
+    while (true);                                       // impossible to continue
   }
-  namespaceID = FindNsID(NAME);                         // Find ID of our namespace in NVS
-  fillkeylist();                                        // Fill keynames with all keys
-  memset(&ini_block, 0, sizeof(ini_block));             // Init ini_block
-  ini_block.clk_server = NTP_SERVER_DEFAULT;            // Default server for NTP
-#ifdef USE_ETHERNET
-  ini_block.clk_tzstring = NTP_TZ_STRING_DEFAULT;       // Default TZ string
+  namespaceID = FindNsID(NAME);                         // find ID of our namespace in NVS
+  fillkeylist();                                        // fill keynames with all keys
+  memset(&ini_block, 0, sizeof(ini_block));             // init ini_block
+  ini_block.clk_server = NTP_SERVER_DEFAULT;            // default server for NTP
+#if !defined(USE_TIMEZONE_LIB) && defined(USE_ETHERNET)
+  ini_block.clk_tzstring = NTP_TZ_STRING_DEFAULT;       // default time zone string
 #else
-  ini_block.clk_offset = 1;                             // Default MEZ time zone
+  ini_block.clk_offset = 1;                             // default MEZ time zone
   ini_block.clk_dst = 1;                                // DST is +1 hour
 #endif
   ini_block.reqvol = 92;                                // initial value, can be overridden by prefs
@@ -3640,7 +3716,10 @@ void setup()
   WiFi.disconnect();                                   // After restart router could still
   delay(100);                                          // keep old connection
   listNetworks();                                      // Search for WiFi networks
-  tcpip_adapter_set_hostname(TCPIP_ADAPTER_IF_STA, NAME);
+
+  // Arduino ESP32 API 2.x
+  //tcpip_adapter_set_hostname(TCPIP_ADAPTER_IF_STA, NAME);
+
   p = dbgprint("Connect to WiFi");                     // Show progress
   tftlog(p);                                           // On TFT too
   delay(100);
@@ -3707,10 +3786,12 @@ void setup()
     dbgprint("No Network found !!");
   }
 #endif
-  timer = timerBegin(0, 80, true);                     // Use 1st timer, prescaler 80, counting upwards (true)
-  timerAttachInterrupt(timer, &timer100, true);        // Call timer100() on timer alarm, generated on edge (true)
-  timerAlarmWrite(timer, 100000, true);                // Alarm every 100 msec, timer to reload (true)
-  timerAlarmEnable(timer);                             // Enable the timer
+
+  // Arduino ESP32 API 3.x                                             
+  timer = timerBegin(1000000);                         // set timer clock to 1uSec (1MHz)  
+  timerAttachInterrupt(timer, &timer100);              // on timer alarm call function timer100 
+  timerAlarm(timer, TIMEOUT_MS * 1000, true, 0);       // set 100ms timeout, reload timer when expired (true), enable alarm
+
 #ifndef USE_ETHERNET
   configTime (ini_block.clk_offset * 3600,
               ini_block.clk_dst * 3600,
@@ -3744,7 +3825,7 @@ void setup()
                  dsp_getheight() - 8, BLACK);           // y, color
   }
   outchunk.datatyp = QDATA;                             // This chunk dedicated to QDATA
-  dataQueue = xQueueCreate(QSIZ, sizeof (qdata_struct));// Create queue for communication
+  dataQueue = xQueueCreate(QSIZE, sizeof (qdata_struct)); // Create queue for communication
                              
   xTaskCreatePinnedToCore(
     playTask,                                            // Task to play data in dataQueue.
@@ -3780,7 +3861,15 @@ void setup()
     &xvumeterTask);                                      // Task handle to keep track of created task
 #endif			
 #ifdef ENABLE_ESP32_HW_WDT
-  esp_task_wdt_init(WDT_TIMEOUT, true);                 // enable panic so ESP32 restarts
+  esp_task_wdt_deinit();
+  // Arduino ESP32 API 3.x
+  esp_task_wdt_config_t twdt_config = {
+    .timeout_ms = WDT_TIMEOUT_MS,
+    //.idle_core_mask = (1 << CONFIG_FREERTOS_NUMBER_OF_CORES) - 1, // bitmask of all cores
+    .idle_core_mask = 0,
+    .trigger_panic = true,
+  };
+  esp_task_wdt_init(&twdt_config);                      // enable panic so ESP32 restarts
   esp_task_wdt_add(NULL);                               // add current thread to WDT watch  
   esp_task_wdt_reset();
 #endif    
@@ -3849,7 +3938,7 @@ void writePrefs()
   String     dstr;                                           // Contents for debug
 
   dbgprint("writePrefs() entered");
-  timerAlarmDisable(timer);                                  // Disable the timer
+  timerStop(timer);                                          // Disable the timer
   nvsclear();                                                // Remove all preferences
   while (true) {
     c = rinbyt(false);                                       // Get next inputcharacter
@@ -3887,11 +3976,11 @@ void writePrefs()
     }
     else {
       if (c != '\r') {                                       // Not newline.  Is is a CR?
-        inputstr += String(c);                              // No, normal char, add to string
+        inputstr += String(c);                               // No, normal char, add to string
       }
     }
   }
-  timerAlarmEnable(timer);                                   // Enable the timer
+  timerStart(timer);                                         // Enable the timer
   fillkeylist();                                             // Update list with keys
 }
 
@@ -4345,14 +4434,16 @@ void checkEncoderAndButtons()
         }
       }
 #ifdef ENABLE_SOAP
-      else { // playMode == MEDIASERVER
+      else { // buttonReturn & playMode == MEDIASERVER
         if (soapChain.size() > 1) {                              // no action if we are in root
           soapChain.pop_back();                                  // delete last element in chain (current level)
           soapChain.back().startingIndex = 0;                    // start displaying items at position 0
           soapChain_t up = soapChain.back();                     // retrieve last element in chain (one level higher)
-          dbgprint("Search in media server container \"%s\" (child count: %d)", 
+          dbgprint("Search in media server container \"%s\" (child count: %d, startingIndex: 0)", 
                    up.name.c_str(), up.size);
-          bool ret = soap.browseServer(0, up.id.c_str(), &soapList);
+          tftset(4, "Browse media server...");
+          delay(200);                       
+          bool ret = browseMediaServer(up.id.c_str(), &soapList);
           if (ret) {                                             // browsing mediaserver one level higher
             if (soapList.size() > 0) {
               tftset(4, "Turn to select directory  or track.\n"  // Show current option
@@ -4363,13 +4454,18 @@ void checkEncoderAndButtons()
                 tftset(2, tmp);
               }
               else {
-                String uriLc = soapList[enc_nodeIndex].uri;
+                String protInfoLc = soapList[enc_nodeIndex].protInfo,
+                       uriLc = soapList[enc_nodeIndex].uri;
+                protInfoLc.toLowerCase();       
                 uriLc.toLowerCase();
-                if (soapList[enc_nodeIndex].fileType != fileTypeAudio ||
-                    !uriLc.endsWith(".mp3"))
+                if ((protInfoLc.indexOf("mp3") < 0 && !uriLc.endsWith(".mp3")) ||
+                    soapList[enc_nodeIndex].fileType != fileTypeAudio)
                   tmp += " [not mp3]";
                 tftset(1, tmp);
               }
+            }
+            else {
+              // higher level can't be empty, otherwise we wouldn't be here
             }
           }
           else {
@@ -4389,7 +4485,7 @@ void checkEncoderAndButtons()
 #endif
     }
 #ifdef ENABLE_SOAP
-    else { // IDLING
+    else { // buttonReturn & encoderMode == IDLING
       if (playMode == MEDIASERVER) { 
         // we want to stop the song and show the current directory
         if (dataMode != STOPPED && dataMode != STOPREQD) {
@@ -4401,12 +4497,14 @@ void checkEncoderAndButtons()
         delay(200);
         if (soapChain.size() > 1) {                              // no action if we are in root
           soapChain_t up = soapChain.back();                     // retrieve last element in chain (current level)
-          dbgprint("Search in media server container \"%s\" (child count: %d)", 
+          dbgprint("Search in media server container \"%s\" (child count: %d, startingIndex: 0)", 
                    up.name.c_str(), up.size);
-          bool ret = soap.browseServer(0, up.id.c_str(), &soapList);
+          tftset(4, "Browse media server...");
+          delay(200);                       
+          bool ret = browseMediaServer(up.id.c_str(), &soapList);
           if (ret) {                                             // browsing mediaserver one level higher
-            encoderMode = SELECT;
             if (soapList.size() > 0) {
+              encoderMode = SELECT;
               tftset(4, "Turn to select directory  or track.\n"  // Show current option
                         "Press to confirm.");
               enc_nodeIndex = 0;                                 // first entry on that level 
@@ -4415,10 +4513,12 @@ void checkEncoderAndButtons()
                 tftset(2, tmp);
               }
               else {
-                String uriLc = soapList[enc_nodeIndex].uri;
+                String protInfoLc = soapList[enc_nodeIndex].protInfo,
+                       uriLc = soapList[enc_nodeIndex].uri;
+                protInfoLc.toLowerCase();       
                 uriLc.toLowerCase();
-                if (soapList[enc_nodeIndex].fileType != fileTypeAudio ||
-                    !uriLc.endsWith(".mp3"))
+                if ((protInfoLc.indexOf("mp3") < 0 && !uriLc.endsWith(".mp3")) ||
+                    soapList[enc_nodeIndex].fileType != fileTypeAudio)
                   tmp += " [not mp3]";
                 tftset(1, tmp);
               }
@@ -4602,7 +4702,9 @@ void checkEncoderAndButtons()
       soapChain_t tmpId = { .id = "0", .name = "Root", .size = 0, .startingIndex = 0 };
       soapChain.push_back(tmpId);                           // first entry always represents root = "0"
       dbgprint("Search in media server container \"0\" (Root)");
-      bool ret = soap.browseServer(0, "0", &soapList);
+      tftset(4, "Browse media server...");
+      delay(200);    
+      bool ret = browseMediaServer("0", &soapList);
       if (ret) {           
         // browsing root of mediaserver was successful
         if (soapList.size() > 0) {
@@ -4620,9 +4722,9 @@ void checkEncoderAndButtons()
           //tftset(4, "");
         }
         if (soapList.size() == 0 || soapList[enc_nodeIndex].isDirectory)
-          tftset(2, tmp);
+          tftset(2, tmp);   // yellow
         else
-          tftset(1, tmp);
+          tftset(1, tmp);   // cyan
       }
       else { 
         // error accessing media server
@@ -4704,22 +4806,27 @@ void checkEncoderAndButtons()
         }
       }
 #ifdef ENABLE_SOAP      
-      else { // playMode == MEDIASERVER
+      else { // single click & playMode == MEDIASERVER
         if (soapList[enc_nodeIndex].isDirectory) {
           // enter directory when searchable and not empty
-          if (soapList[enc_nodeIndex].size > 0 &&                  // container contains elements
-              soapList[enc_nodeIndex].searchable) {                // and is searchable
+          if (true/*soapList[enc_nodeIndex].size > 0 ||                  // container contains elements
+              soapList[enc_nodeIndex].searchable*/) {                // and is searchable
+            soapObjectVect_t soapListTmp;
             soapChain_t tmpId;
             tmpId.id = soapList[enc_nodeIndex].id;
             tmpId.name = soapList[enc_nodeIndex].name;
             tmpId.size = soapList[enc_nodeIndex].size;
             tmpId.startingIndex = 0;
-            dbgprint("Search in media server container \"%s\" (child count: %d)", 
+            dbgprint("Search in media server container \"%s\" (child count: %d, startingIndex: 0)", 
                      soapList[enc_nodeIndex].name.c_str(), soapList[enc_nodeIndex].size);
-            bool ret = soap.browseServer(0, soapList[enc_nodeIndex].id.c_str(), &soapList);
+            tftset(4, "Browse media server...");
+            delay(200);
+            bool ret = browseMediaServer(soapList[enc_nodeIndex].id.c_str(), &soapListTmp);
             if (ret) { 
               // browsing media server was successful
-              if (soapList.size() > 0) {
+              if (soapListTmp.size() > 0) {
+                soapList = soapListTmp;
+                soapListTmp.clear();
                 tftset(4, "Turn to select directory  or track.\n"  // Show current option
                           "Press to confirm.");
                 soapChain.push_back(tmpId);                        // to find our way back up          
@@ -4729,18 +4836,29 @@ void checkEncoderAndButtons()
                   tftset(2, tmp);                                  // show directories in yellow
                 }
                 else {
+                  String protInfoLc = soapList[enc_nodeIndex].protInfo,
+                         uriLc = soapList[enc_nodeIndex].uri;
+                  protInfoLc.toLowerCase();
+                  uriLc.toLowerCase();
                   if ((inx = tmp.indexOf(".mp3")) > 0 ||
                       (inx = tmp.indexOf(".MP3")) > 0) {
                     tmp = tmp.substring(0, inx);                   // remove extension (if any)
+                  }
+                  if (soapList[enc_nodeIndex].size == 0 || 
+                      soapList[enc_nodeIndex].fileType != fileTypeAudio ||
+                      (protInfoLc.indexOf("mp3") < 0 && !uriLc.endsWith(".mp3"))) {
+                    tmp += " [not mp3]";
                   }
                   tftset(1, tmp);                                  // show files in cyan
                 }
               }
               else {
-                // strange error: container should contain elements but browse list is empty
-                dbgprint("singleClick: error browsing container on media server - list size: 0 !");
+                // browse list is empty
+                //encoderMode = IDLING;
+                //playMode = NONE;
+                dbgprint("singleClick: no elements in list !");
                 //tftset(1, "Error browsing       media server !");
-                tftset(4, "Error: no items returned");
+                tftset(4, "Sorry, no content !");
               }
             }
             else {
@@ -4753,27 +4871,24 @@ void checkEncoderAndButtons()
             }
           } 
           else {
+            dbgprint("singleClick: we do not browse media server: this directory has attribute size=0 or searchable=0");
             tftset(4,"Sorry, no content !");
             delay(1300);
             tftset(4, "Turn to select directory  or track.\n"        // Show current option
                       "Press to confirm.");
           } 
         }
-        else {
-          // item in list is a file
+        else { // item in list is a file
           if (dataMode != STOPPED) {
             dbgprint("STOP (singleClick & playMode == MEDIASERVER)");
             dataMode = STOPREQD;                                     // Request STOP, do not touch longClick flag
           } 
-          String uriLc = soapList[enc_nodeIndex].uri;
+          String protInfoLc = soapList[enc_nodeIndex].protInfo,
+                 uriLc = soapList[enc_nodeIndex].uri;
+          protInfoLc.toLowerCase();
           uriLc.toLowerCase();
-          if (soapList[enc_nodeIndex].size == 0 ||
-              soapList[enc_nodeIndex].fileType != fileTypeAudio ||
-              (!uriLc.endsWith(".mp3"))) {
-            dbgprint("error: %s is not a mp3 track", soapList[enc_nodeIndex].name.c_str());
-            tftset(4, "Error: Not a MP3 track !");                   // text on bottom in green
-          }
-          else {
+          if (soapList[enc_nodeIndex].size > 0 && soapList[enc_nodeIndex].fileType == fileTypeAudio &&
+              (protInfoLc.indexOf("mp3") > 0 || uriLc.endsWith(".mp3"))) {
             host = "soap/" + soapList[enc_nodeIndex].uri;
             hostObject = soapList[enc_nodeIndex];
             dbgprint("Selected host=%s", host.c_str());
@@ -4785,6 +4900,10 @@ void checkEncoderAndButtons()
             muteFlag = 20;                                           // ca. 2 sec.
             //xQueueReset (dataQueue);
             //tftset(4, "");                                         // Clear text
+          }
+          else {
+            dbgprint("error: %s is not a mp3 track", soapList[enc_nodeIndex].name.c_str());
+            tftset(4, "Error: Not a MP3 track !");                   // text on bottom in green
           }
         }
       }
@@ -4856,7 +4975,7 @@ void checkEncoderAndButtons()
     }
 #endif
   }
-  else { // encoderMode == SELECT
+  else { // rotationcount & encoderMode == SELECT
     if (playMode == STATION) {
       if ((enc_preset + rotationcount) < 0) {
         enc_preset = highestPreset;                          // from 0 to highest preset
@@ -4898,8 +5017,9 @@ void checkEncoderAndButtons()
       }
     }
 #ifdef ENABLE_SOAP      
-    else { // playMode == MEDIASERVER
+    else { // rotationcount & playMode == MEDIASERVER
       enc_nodeIndex += rotationcount;
+      dbgprint("playMode: MEDIASERVER, enc_nodeIndex=%d", enc_nodeIndex);
       if (enc_nodeIndex < 0) {
         // begin of browse list reached
         if (soapChain.back().startingIndex > 0) {
@@ -4909,7 +5029,9 @@ void checkEncoderAndButtons()
           // browse request with new starting index  
           dbgprint("Search again in media server container \"%s\" (child count: %d, startingIndex: %d)", 
                    soapChain.back().name.c_str(), soapChain.back().size, soapChain.back().startingIndex);
-          bool ret = soap.browseServer(0, soapChain.back().id.c_str(), &soapList, soapChain.back().startingIndex);
+          tftset(4, "Browse media server...");
+          delay(200);                   
+          bool ret = browseMediaServer(soapChain.back().id.c_str(), &soapList, soapChain.back().startingIndex);
           if (ret) { 
             // browsing mediaserver successful
             enc_nodeIndex = soapList.size() - 1;                 // new index in browse list
@@ -4921,10 +5043,12 @@ void checkEncoderAndButtons()
                 tftset(2, tmp);
               }
               else {
-                String uriLc = soapList[enc_nodeIndex].uri;
+                String protInfoLc = soapList[enc_nodeIndex].protInfo,
+                       uriLc = soapList[enc_nodeIndex].uri;
+                protInfoLc.toLowerCase();       
                 uriLc.toLowerCase();
-                if (soapList[enc_nodeIndex].fileType != fileTypeAudio ||
-                    !uriLc.endsWith(".mp3"))
+                if ((protInfoLc.indexOf("mp3") < 0 && !uriLc.endsWith(".mp3")) ||
+                    soapList[enc_nodeIndex].fileType != fileTypeAudio)
                   tmp += " [not mp3]";
                 tftset(1, tmp);
               }
@@ -4958,9 +5082,11 @@ void checkEncoderAndButtons()
           dbgprint("end of this browse list but %d more items to come in this directory", more);
           size_t newStartingIndex = soapChain.back().startingIndex + soapList.size();
           // browse request with new starting index  
-           dbgprint("Search again in media server container \"%s\" (child count: %d, startingIndex: %d)", 
+          dbgprint("Search again in media server container \"%s\" (child count: %d, startingIndex: %d)", 
                      soapChain.back().name.c_str(), soapChain.back().size, newStartingIndex);
-          bool ret = soap.browseServer(0, soapChain.back().id.c_str(), &soapList, newStartingIndex);
+          tftset(4, "Browse media server...");
+          delay(200);                         
+          bool ret = browseMediaServer(soapChain.back().id.c_str(), &soapList, newStartingIndex);
           if (ret) { 
             // browsing root of mediaserver was successful
             enc_nodeIndex = 0;                                   // new index in browse list
@@ -4973,10 +5099,12 @@ void checkEncoderAndButtons()
                 tftset(2, tmp);
               }
               else {
-                String uriLc = soapList[enc_nodeIndex].uri;
+                String protInfoLc = soapList[enc_nodeIndex].protInfo,
+                       uriLc = soapList[enc_nodeIndex].uri;
+                protInfoLc.toLowerCase();       
                 uriLc.toLowerCase();
-                if (soapList[enc_nodeIndex].fileType != fileTypeAudio ||
-                    !uriLc.endsWith(".mp3"))
+                if ((protInfoLc.indexOf("mp3") < 0 && !uriLc.endsWith(".mp3")) ||
+                    soapList[enc_nodeIndex].fileType != fileTypeAudio)
                   tmp += " [not mp3]";
                 tftset(1, tmp);
               }
@@ -5013,10 +5141,12 @@ void checkEncoderAndButtons()
         tftset(2, tmp);
       }
       else {
-        String uriLc = soapList[enc_nodeIndex].uri;
+        String protInfoLc = soapList[enc_nodeIndex].protInfo,
+                uriLc = soapList[enc_nodeIndex].uri;
+        protInfoLc.toLowerCase();       
         uriLc.toLowerCase();
-        if (soapList[enc_nodeIndex].fileType != fileTypeAudio ||
-            !uriLc.endsWith(".mp3")) {
+        if ((protInfoLc.indexOf("mp3") < 0 && !uriLc.endsWith(".mp3")) ||
+            soapList[enc_nodeIndex].fileType != fileTypeAudio) {
           if (tmp.length() > MAX_NAME_LENGTH) {
             tmp.remove(MAX_NAME_LENGTH - 13);
             tmp += "...";
@@ -5278,7 +5408,7 @@ void mp3loop()
           newIndex = nextSoapFileIndex(currentIndex, +1);      // Select next mp3 file in list
         }
         if (newIndex != -1) {
-          dbgprint("Next file soapList[%d]: \"%s\"",newIndex, soapList[newIndex].name.c_str());
+          dbgprint("Next file soapList[%d]: \"%s\"", newIndex, soapList[newIndex].name.c_str());
           host = "soap/" + soapList[newIndex].uri;
           hostObject = soapList[newIndex];
           currentIndex = newIndex;
@@ -5292,9 +5422,11 @@ void mp3loop()
         // stop playing after this file and show directory content
         String tmp;
         soapChain_t dir = soapChain.back();                    // retrieve last element in chain
-        dbgprint("Search in media server container \"%s\" (child count: %d)", 
+        dbgprint("Search in media server container \"%s\" (child count: %d, startingIndex: 0)", 
                  dir.name.c_str(), dir.size);
-        bool ret = soap.browseServer(0, dir.id.c_str(), &soapList);
+        tftset(4, "Browse media server...");
+        delay(200);    
+        bool ret = browseMediaServer(dir.id.c_str(), &soapList);
         if (ret) {                                             // browsing mediaserver one level higher
           encoderMode = SELECT;
           if (soapList.size() > 0) {
@@ -5306,13 +5438,18 @@ void mp3loop()
               tftset(2, tmp);
             }
             else {
-              String uriLc = soapList[currentIndex].uri;
+              String protInfoLc = soapList[currentIndex].protInfo,
+                      uriLc = soapList[currentIndex].uri;
+              protInfoLc.toLowerCase();       
               uriLc.toLowerCase();
-              if (soapList[currentIndex].fileType != fileTypeAudio ||
-                  !uriLc.endsWith(".mp3"))
+              if ((protInfoLc.indexOf("mp3") < 0 && !uriLc.endsWith(".mp3")) ||
+                  soapList[currentIndex].fileType != fileTypeAudio)
                 tmp += " [not mp3]";
               tftset(1, tmp);
             }
+          }
+          else {
+            // ??
           }
         }
         else {
@@ -5330,38 +5467,38 @@ void mp3loop()
   if (ini_block.newpreset != currentPreset) {              // new station or next from playlist requested?
     dbgprint("mp3loop: ini_block.newpreset[%d] != currentPreset[%d]",
                ini_block.newpreset, currentPreset);
-    if (dataMode != STOPPED) {                             // Yes, still busy?
+    if (dataMode != STOPPED) {                             // yes, still busy?
       dbgprint("mp3loop: STOP7 (dataMode != STOPPED)");
-      dataMode = STOPREQD;                                 // Yes, request STOP
+      dataMode = STOPREQD;                                 // yes, request STOP
     }
     else {
-      if (playlist_num) {                                  // Playing from playlist?
+      if (playlist_num) {                                  // playing from playlist?
         // Yes, retrieve URL of playlist
         playlist_num += ini_block.newpreset -
-                        currentPreset;                     // Next entry in playlist
-        ini_block.newpreset = currentPreset;               // Stay at current preset
+                        currentPreset;                     // next entry in playlist
+        ini_block.newpreset = currentPreset;               // stay at current preset
       }
       else {
-        host = readhostfrompref();                         // Lookup preset in preferences
-        chomp (host);                                      // Get rid of part after "#"
+        host = readhostfrompref();                         // lookup preset in preferences
+        chomp(host);                                       // get rid of part after "#"
       }
       dbgprint("mp3loop: New preset/file requested (%d/%d) from %s",
                ini_block.newpreset, playlist_num, host.c_str());
-      if (host != "") {                                    // Preset in ini-file?
-        hostreq = true;                                    // Force this station as new preset
+      if (host != "") {                                    // preset in ini-file?
+        hostreq = true;                                    // force this station as new preset
       }
       else {
-        // This preset is not available, return to preset 0, will be handled in next mp3loop()
-        dbgprint("mp3loop: No host for this preset");
-        ini_block.newpreset = 0;                           // Wrap to first station
+        // invalid preset, so we return to preset 0, will be handled in next mp3loop()
+        dbgprint("mp3loop: No host for preset %d", ini_block.newpreset);
+        ini_block.newpreset = 0;                           // wrap to first station
       }
     }
   }
-  if (hostreq) {                                           // New preset or station?
+  if (hostreq) {                                           // new preset or station?
     dbgprint("mp3loop: hostreq=true");
     hostreq = false;
     mp3filePause = false;
-    currentPreset = ini_block.newpreset;                   // Remember current preset
+    currentPreset = ini_block.newpreset;                   // remember current preset
 
     // Check source type
     if (host.indexOf("sdcard/") == 0)
@@ -5470,13 +5607,13 @@ void handleClientOnPort23()
   
   if (!dbgConnectFlag)
   {
-    _claimSPI("port231");                          // claim SPI bus
+    _claimSPI("port231");                            // claim SPI bus
     dbgclient = dbgserver.accept();
     _releaseSPI();                                   // release SPI bus
     if (dbgclient)
     {
       dbgConnectFlag = true;
-      _claimSPI("port232");                        // claim SPI bus
+      _claimSPI("port232");                          // claim SPI bus
       dbgclient.print("\r\nESP32-Radio Debug Server on port 23\r\n");
 #ifdef CHECK_LOOP_TIME
       dbgclient.print("Press 't'+ENTER to reset loop timer.\r\n");
@@ -5488,18 +5625,18 @@ void handleClientOnPort23()
     }
   }
   else { // connect flag still set
-    _claimSPI("port233");                          // claim SPI bus
+    _claimSPI("port233");                            // claim SPI bus
     // we don't accept another client, so recline
-    //dbgserver.available().stop();                   // not needed... ?
+    //dbgserver.available().stop();                  // not needed... ?
     uint8_t con = dbgclient.connected();
     _releaseSPI();                                   // release SPI bus
-    if (con) {                                        // debug client still connected ?
-      _claimSPI("port234");                        // claim SPI bus
+    if (con) {                                       // debug client still connected ?
+      _claimSPI("port234");                          // claim SPI bus
       int charsWaiting = dbgclient.available();
       _releaseSPI();                                 // release SPI bus
       if (charsWaiting) {                            // data available
         do {
-          _claimSPI("port235");                    // claim SPI bus
+          _claimSPI("port235");                      // claim SPI bus
           char c = dbgclient.read();
           _releaseSPI();                             // release SPI bus
           dbgTextBuf[dbgCharsReceived++] = c;
@@ -5513,31 +5650,31 @@ void handleClientOnPort23()
           switch (dbgTextBuf[0]) {
             case 0x0D: break;                         // ignore empty line
             case 'q':  
-              _claimSPI("port236");                // claim SPI bus
+              _claimSPI("port236");                   // claim SPI bus
               dbgclient.print("\r\nBye bye.\r\n");
               dbgclient.flush();
               dbgclient.stop();
-              _releaseSPI();                         // release SPI bus
+              _releaseSPI();                          // release SPI bus
               dbgConnectFlag = false;
               dbgprint("Debug Client on port 23 disconnected on his request.");
               break;
             case '?':
-              _claimSPI("port237");                // claim SPI bus
+              _claimSPI("port237");                   // claim SPI bus
 #ifdef CHECK_LOOP_TIME
               dbgclient.print("Press 't'+ENTER to reset loop timer.\r\n");
 #endif
               dbgclient.print("Press 'q'+ENTER to quit.\r\n\r\n");
               //dbgclient.println("");
-              _releaseSPI();                         // release SPI bus
+              _releaseSPI();                          // release SPI bus
               break;            
 #ifdef CHECK_LOOP_TIME
-            case 't':                                  // CTRL-T resets loop timer
+            case 't':                                 // CTRL-T resets loop timer
               maxLoopTime = 0;
               dbgprint("Loop timer resetted.");
               break;
 #endif
             default: 
-              _claimSPI("port238");                // claim SPI bus
+              _claimSPI("port238");                  // claim SPI bus
               dbgclient.print("\r\nUnrecognized command.  ? for help.\r\n");
               _releaseSPI();                         // release SPI bus
               break;
@@ -5546,18 +5683,18 @@ void handleClientOnPort23()
         if (dbgCharsReceived >= MAXSIZE_TELNET_CMD) {
           dbgCharsReceived = 0;
           //EOLseen = false;
-          _claimSPI("port239");                    // claim SPI bus
+          _claimSPI("port239");                      // claim SPI bus
           dbgclient.print("\r\nUnrecognized command.  ? for help.\r\n");
           _releaseSPI();                             // release SPI bus
         }
       }
     }
     else { // connection gone (eg. client has disconnected)
-      _claimSPI("port2310");                       // claim SPI bus
+      _claimSPI("port2310");                         // claim SPI bus
       dbgclient.flush();
       dbgclient.stop();
       _releaseSPI();                                 // release SPI bus
-      dbgConnectFlag = false;                         // remember connection state
+      dbgConnectFlag = false;                        // remember connection state
       EOLseen = false;
       dbgCharsReceived = 0;
       dbgprint("Debug Client on port 23 has disconnected.");
@@ -5581,34 +5718,34 @@ void loop()
   uint32_t timing;                                      // for calculation of loop() round times
   timing = millis();
 #endif
-  mp3loop();                                            // Do mp3 related actions
-  if (resetreq) {                                       // Reset requested?
-    delay(1000);                                        // Yes, wait some time
-    ESP.restart();                                      // Reboot
+  mp3loop();                                            // mp3 related actions
+  if (resetreq) {                                       // reset requested?
+    delay(1000);                                        // wait some time
+    ESP.restart();                                      // reboot
   }
-  scanserial();                                         // Handle serial input
+  scanserial();                                         // handle serial input
 #ifdef ENABLE_DIGITAL_INPUTS  
-  scandigital();                                        // Scan digital inputs
+  scandigital();                                        // scan digital inputs
 #endif  
 #ifdef ENABLE_INFRARED
-  scanIR();                                             // See if IR input
+  scanIR();                                             // see if IR input
 #endif
 #ifndef USE_ETHERNET
-  ArduinoOTA.handle();                                  // Check for OTA
+  ArduinoOTA.handle();                                  // check for OTA
 #endif
-  mp3loop();                                            // Do more mp3 related actions
+  mp3loop();                                            // more mp3 related actions
 #if defined(ENABLE_CMDSERVER) && !defined(PORT23_ACTIVE)
   handlehttpreply();
   _claimSPI("loop");                                    // claim SPI bus
-  cmdclient = cmdserver.available();                    // Check Input from client
+  cmdclient = cmdserver.accept();                       // check Input from client
   _releaseSPI();                                        // release SPI bus
-  if (cmdclient) {                                      // Client connected ?
+  if (cmdclient) {                                      // client connected ?
     dbgprint("loop(): command client available");
     handlehttp();
   }
 #endif  
   //
-  handleSaveReq();                                      // See if time to save settings
+  handleSaveReq();                                      // save settings if needed
   checkEncoderAndButtons();                             // check rotary encoder & button functions
 #ifdef PORT23_ACTIVE
   handleClientOnPort23();                               // check possible debug client requests
@@ -5630,23 +5767,23 @@ void loop()
 //**************************************************************************************************
 bool chkhdrline(const char* str)
 {
-  char b;                                             // Byte examined
-  int  len = 0;                                       // Length of string
+  char b;
+  int  len = 0;
 
-  while ((b = *str++)) {                              // Search to end of string
-    len++;                                            // Update string length
+  while ((b = *str++)) {                              // search to end of string
+    len++;                                            // update string length
     if (!isalpha(b)) {                                // Alpha (a-z, A-Z)
       if (b != '-') {                                 // Minus sign is allowed
-        if (b == ':') {                               // Found a colon?
-          return ((len > 5) && (len < 50));           // Yes, okay if length is okay
+        if (b == ':') {                               // found a colon?
+          return ((len > 5) && (len < 50));           // okay if length is okay
         }
         else {
-          return false;                               // Not a legal character
+          return false;                               // not a legal character
         }
       }
     }
   }
-  return false;                                       // End of string without colon
+  return false;                                       // end of string without colon
 }
 
 //**************************************************************************************************
@@ -5656,9 +5793,9 @@ bool chkhdrline(const char* str)
 //**************************************************************************************************
 void scan_content_length(const char* metalinebf)
 {
-  if (strstr(metalinebf, "Content-Length")) {        // Line contains content length
-    clength = atoi(metalinebf + 15);                 // Yes, set clength
-    dbgprint("Content-Length is %d", clength);       // Show for debugging purposes
+  if (strstr(metalinebf, "Content-Length")) {        // line contains content length
+    clength = atoi(metalinebf + 15);                 // set length
+    dbgprint("Content-Length is %d", clength);
   }
 }
 
@@ -5670,70 +5807,70 @@ void scan_content_length(const char* metalinebf)
 //**************************************************************************************************
 void handlebyte_ch(uint8_t b)
 {
-  static int       chunksize = 0;                      // Chunkcount read from stream
-  static uint16_t  playlistcnt;                        // Counter to find right entry in playlist
-  static int       LFcount;                            // Detection of end of header
-  static bool      ctseen = false;                     // First line of header seen or not
-  static bool      nameseen = false;                   // Name of station seen
-  static bool      brseen = false;                     // Bitrate of station seen
+  static int       chunksize = 0;                      // chunkcount read from stream
+  static uint16_t  playlistcnt;                        // counter to find right entry in playlist
+  static int       LFcount;                            // detection of end of header
+  static bool      ctseen = false;                     // first line of header seen or not
+  static bool      nameseen = false;                   // name of station seen
+  static bool      brseen = false;                     // bitrate of station seen
 
   if (chunked &&
        (dataMode & (DATA |                             // Test op DATA handling
                     METADATA |
                     PLAYLISTDATA))) {
-    if (chunkcount == 0) {                             // Expecting a new chunkcount?
-      if (b == '\r') {                                 // Skip CR
+    if (chunkcount == 0) {                             // expecting a new chunkcount?
+      if (b == '\r') {                                 // skip CR
         return;
       }
       else if (b == '\n') {                            // LF ?
-        chunkcount = chunksize;                        // Yes, set new count
-        chunksize = 0;                                 // For next decode
+        chunkcount = chunksize;                        // set new count
+        chunksize = 0;                                 // for next decode
         return;
       }
       // We have received a hexadecimal character.  Decode it and add to the result.
-      b = toupper(b) - '0';                            // Be sure we have uppercase
+      b = toupper(b) - '0';                            // be sure we have uppercase
       if (b > 9) {
-        b = b - 7;                                     // Translate A..F to 10..15
+        b = b - 7;                                     // translate A..F to 10..15
       }
       chunksize = (chunksize << 4) + b;
       return;
     }
-    chunkcount--;                                      // Update count to next chunksize block
+    chunkcount--;                                      // update count to next chunksize block
   }
-  if (dataMode == DATA) {                              // Handle next byte of MP3/Ogg data
+  if (dataMode == DATA) {                              // handle next byte of MP3/Ogg data
     *outqp++ = b;
-    if (outqp == (outchunk.buf + sizeof(outchunk.buf))) { // Buffer full?
-      outchunk.datatyp = QDATA;                        // This chunk dedicated to QDATA
+    if (outqp == (outchunk.buf + sizeof(outchunk.buf))) { // buffer full?
+      outchunk.datatyp = QDATA;                        // chunk is dedicated to QDATA
       // Send data to playTask queue.  If the buffer cannot be placed within 200 ticks,
       // the queue is full, while the sender tries to send more.  The chunk will be dis-
       // carded in that case.
       xQueueSend(dataQueue, &outchunk, 200);           // send to queue (wait max 200 ticks [resp. 200ms])
       outqp = outchunk.buf;                            // item empty now
     }
-    //*/
-    if (metaint) {                                     // No METADATA on Ogg streams or mp3 files
-      if (--datacount == 0) {                          // End of datablock?
+
+    if (metaint) {                                     // METADATA on Ogg streams or mp3 files ?
+      if (--datacount == 0) {                          // end of datablock?
         dataMode = METADATA;
-        metalinebfx = -1;                              // Expecting first metabyte (counter)
+        metalinebfx = -1;                              // expecting first metabyte (counter)
       }
     }
     return;
   }
-  if (dataMode == INIT) {                              // Initialize for header receive
-    ctseen = false;                                    // Contents type not seen yet
-    nameseen = false;                                  // Name of station not seen yet
-    brseen = false;                                    // Bitrate of station not seen yet
-    metaint = 0;                                       // No metaint found
-    LFcount = 0;                                       // For detection end of header
-    bitrate = 0;                                       // Bitrate still unknown
+  if (dataMode == INIT) {                              // initialize for header receive
+    ctseen = false;                                    // contents type not seen yet
+    nameseen = false;                                  // name of station not seen yet
+    brseen = false;                                    // bitrate of station not seen yet
+    metaint = 0;                                       // no metaint found
+    LFcount = 0;                                       // for detection end of header
+    bitrate = 0;                                       // bitrate still unknown
     dbgprint("Switch to HEADER"); 
-    dataMode = HEADER;                                 // Handle header
-    totalCount = 0;                                    // Reset totalCount
-    metalinebfx = 0;                                   // No metadata yet
+    dataMode = HEADER;                                 // handle header
+    totalCount = 0;                                    // reset totalCount
+    metalinebfx = 0;                                   // no metadata yet
     metalinebf[0] = '\0';
     muteFlag = 16;                                     // ca. 1,6 sek.
   }
-  if (dataMode == HEADER) {                            // Handle next byte of MP3 header
+  if (dataMode == HEADER) {                            // handle next byte of MP3 header
     b = utf8ascii(b);
     if ((b > 0x7F) ||                                  // Ignore unprintable characters
         (b == '\r') ||                                 // Ignore CR
@@ -5788,12 +5925,12 @@ void handlebyte_ch(uint8_t b)
           }
         }
       }
-      metalinebfx = 0;                                 // Reset this line
-      if ((LFcount == 2) && ctseen) {                  // Content type seen and a double LF?
-        dbgprint("Switch to DATA, bitrate is %dkbps"   // Show bitrate
+      metalinebfx = 0;                                 // reset this line
+      if ((LFcount == 2) && ctseen) {                  // content type seen and a double LF?
+        dbgprint("Switch to DATA, bitrate is %dkbps"   // show bitrate
                  ", metaint is %d", bitrate, metaint); // and metaint
-        dataMode = DATA;                               // Expecting data now
-        datacount = metaint;                           // Number of bytes before first metadata
+        dataMode = DATA;                               // expecting data now
+        datacount = metaint;                           // number of bytes before first metadata
         skipStationAllowed = true;                     // now allow skip buttons in station mode
         if (!nameseen) {                               // no name seen, that's highly unusual
           // so we try to find it in the preset list
@@ -5816,12 +5953,12 @@ void handlebyte_ch(uint8_t b)
             }
             if (tmp.indexOf(host) >= 0) {              // Found host in preset ?
               dbgprint("Found host in preset %d.", i);
-              inx = tmp.indexOf("#");                  // Get position of "#"
-              if (inx > 0) {                           // Hash sign present?
-                tmp.remove(0, inx + 1);            // Yes, remove non-comment part
-                chomp(tmp);                        // Remove garbage from description
-                tmp.trim();                           // Remove leading & trailing whitespace
-                if (tmp.length() > 0) {                // Something left ?
+              inx = tmp.indexOf("#");                  // get position of "#"
+              if (inx > 0) {                           // hash sign present?
+                tmp.remove(0, inx + 1);                // remove non-comment part
+                chomp(tmp);                            // remove garbage from description
+                tmp.trim();                            // remove leading & trailing whitespace
+                if (tmp.length() > 0) {                // something left ?
                   inx = tmp.indexOf(" - ");
                   if (inx >= 0) {
                     tmp.remove(0, inx + 3);
@@ -6076,9 +6213,9 @@ void handleFSf(const String& pagename)
         }
         else {
           _claimSPI("handlefsf5");                  // claim SPI bus
-          cmdclient.write(p, TCPCHUNKSIZE);         // Send part of the page
+          cmdclient.write(p, TCPCHUNKSIZE);         // send part of the page
           _releaseSPI();                            // release SPI bus
-          p += TCPCHUNKSIZE;                        // Update startpoint and rest of bytes
+          p += TCPCHUNKSIZE;                        // update startpoint and rest of bytes
           l -= TCPCHUNKSIZE;
         }
       }
@@ -6172,6 +6309,7 @@ const char* analyzeCmd(const char* str)
 //   mode                                   // switch between SDCARD / STATION mode                *
 //   previous/next                          // previous/next mp3 file or station                   *
 //   mediaserver_xxx                        // media server settings                               *
+//   soap       = <URI>.mp3                 // play audio file from media server                   *
 //**************************************************************************************************
 const char* analyzeCmd(const char* par, const char* val)
 {
@@ -6532,6 +6670,63 @@ const char* analyzeCmd(const char* par, const char* val)
     hostreq = true;                                   // Force this station or file as new preset
     utf8ascii(reply);                                 // Remove possible strange characters in reply
   }
+#ifdef ENABLE_SOAP     
+  else if (argument == "soap") {                      // play audio file from media server
+    if (value.length() == 0 || value.indexOf('/') < 0 || !value.endsWith(".mp3")) {
+      const char* p = dbgprint("Error: parameter value invalid !");
+      strcpy(reply, p);
+      utf8ascii(reply);  
+      return reply;
+    }
+    dbgprint("Mediaserver mode requested via HTTP (Play button)");
+    buttonMediaserver = false;
+    mp3nodeList.clear();                              // Free memory space
+    SD_mp3fileCount = 0;
+    if (playMode != MEDIASERVER) {
+      tftset(0, "ESP32 DLNA");                        // Set screen segment top line
+      //displaytime ("");                             // Time to be refreshed
+      if (dataMode != STOPPED) {
+        dbgprint("STOP (Mediaserver per HTTP request)");
+        dataMode = STOPREQD;                          // Request STOP
+        muteFlag = 30;                                // 3 secs muted
+      }
+      if (playMode == STATION)
+        stopMp3client();                              // Sockets are sparse, so we need to close it here already
+      playMode = MEDIASERVER;
+      encoderMode = IDLING;
+      mp3fileRepeatFlag = NOREPEAT;
+      xQueueReset(dataQueue);
+    }
+    // single file requested with play button via HTTP
+    soapList.clear();
+    soapObject_t tmpObject = { .isDirectory = false, .size = 0, .name = "single file requested per HTTP", 
+                               .uri = value, .downloadIp = ini_block.srv_ip, .downloadPort = ini_block.srv_port };
+    soapList.push_back(tmpObject);
+    // to make sure the return button lands in Root
+    soapChain.clear();
+    soapChain_t tmpId = { .id = "0", .name = "Root", .size = 0, .startingIndex = 0 };
+    soapChain.push_back(tmpId);                        // first entry always represents root = "0"
+    tmpId = { .id = "1", .name = "dummy", .size = 1, .startingIndex = 0 };
+    soapChain.push_back(tmpId); 
+
+    if (dataMode != STOPPED) {
+      dbgprint("STOP (Mediaserver per HTTP request 2)");
+      dataMode = STOPREQD;                             // Request STOP, do not touch longClick flag
+    } 
+
+    host = "soap/" + soapList[0].uri;
+    hostObject = soapList[0];
+    dbgprint("Selected host=%s", host.c_str());
+    encoderMode = IDLING;                              // Back to default mode
+    currentIndex = 0;
+    hostreq = true;                                    // Request this host
+    mp3fileRepeatFlag = DIRECTORY;
+    mp3filePause = false;  
+    muteFlag = 20;                                     // ca. 2 sec.
+    //xQueueReset (dataQueue);
+    //tftset(4, "");                                   // Clear text
+  }
+#endif  
   else if (argument == "status") {                    // Status request
     if (dataMode == STOPPED) {
       sprintf(reply, "Player stopped");               // Format reply
@@ -6632,7 +6827,7 @@ const char* analyzeCmd(const char* par, const char* val)
     if (argument.indexOf("server") > 0) {            // NTP server spec?
       ini_block.clk_server = value;                  // set server
     }
-#ifdef USE_ETHERNET
+#if !defined(USE_TIMEZONE_LIB) && defined(USE_ETHERNET)
     if (argument.indexOf("tzstring") > 0) {          // time zone string?
       ini_block.clk_tzstring = value;                // set time zone string
     }
@@ -6951,22 +7146,16 @@ void displayinfo(uint16_t inx)
 //**************************************************************************************************
 // Retrieve local time from NTP server & convert to string. Only needed when using Ethernet/LAN.   *
 //**************************************************************************************************
+
 bool getLocalTimeEth(struct tm *info)
 {
-  static bool initialized = false;
   int ret, tt = 0, num = 0;
   unsigned long epoch;
   byte packetBuffer[NTP_PACKET_SIZE];         // buffer to hold incoming and outgoing packets
 
-  if (!initialized) {                        // executing only once
-    initialized = true;
-    setenv("TZ", ini_block.clk_tzstring.c_str(), 1);
-    tzset();
-  }
-
   memset(packetBuffer, 0, NTP_PACKET_SIZE);   // set all bytes in the buffer to 0
   // Initialize values needed to form NTP request
-  packetBuffer[0] = 0b11100011;   // LI, Version, Mode
+  packetBuffer[0] = 0b11100011;               // LI, Version, Mode
   packetBuffer[1] = 0;                        // Stratum, or type of clock
   packetBuffer[2] = 6;                        // Polling Interval
   packetBuffer[3] = 0xEC;                     // Peer Clock Precision
@@ -6975,11 +7164,11 @@ bool getLocalTimeEth(struct tm *info)
   packetBuffer[13]  = 0x4E;
   packetBuffer[14]  = 49;
   packetBuffer[15]  = 52;
-  _claimSPI("time1");                     // claim SPI bus
+  _claimSPI("time1");                         // claim SPI bus
   udpclient.begin(localPortNtp);              // needed for ntp time server
   ret = udpclient.beginPacket(ini_block.clk_server.c_str(), 123);
-  _releaseSPI();                            // release SPI bus
-  if (ret) {                                 //NTP requests are to port 123
+  _releaseSPI();                              // release SPI bus
+  if (ret) {                                  //NTP requests are to port 123
     // the host exists (we got positive DNS answer)
     _claimSPI("time2");                   // claim SPI bus
     udpclient.write(packetBuffer, NTP_PACKET_SIZE);
@@ -6995,25 +7184,46 @@ bool getLocalTimeEth(struct tm *info)
   }
   if (num) {
     dbgprint("NTP server response after %d ms from %s", tt * 100, ini_block.clk_server.c_str());
-    _claimSPI("time4");                   // claim SPI bus
+    _claimSPI("time4");                     // claim SPI bus
     udpclient.read(packetBuffer, NTP_PACKET_SIZE);  // read the packet into the buffer
     udpclient.stop();
     _releaseSPI();                          // release SPI bus
     long highWord = word(packetBuffer[40], packetBuffer[41]);
     long lowWord = word(packetBuffer[42], packetBuffer[43]);
     // this is NTP time (seconds since Jan 1 1900):
-    long secsSince1900 = highWord << 16 | lowWord;       // combine the four bytes (two words) into a long integer
-    epoch = secsSince1900 - 2208988800UL;                // convert into Unix time (secs since 1.1.1970)
-    dbgprint("Posix time zone string: \"%s\"", ini_block.clk_tzstring.c_str());
-    localtime_r((const time_t*)&epoch, info);
-    dbgprint("TZ applied -> Date: %d.%d.%d Time: %02d:%02d",
-               info->tm_mday, info->tm_mon + 1, info->tm_year + 1900, info->tm_hour, info->tm_min);
+    unsigned long secsSince1900 = highWord << 16 | lowWord;  // combine the four bytes (two words) into a long unsigned integer
+    epoch = secsSince1900 - 2208988800UL;                    // convert into Unix time (secs since 1.1.1970)
+
+#ifdef USE_TIMEZONE_LIB
+    TimeChangeRule *tcr;                    // pointer to the time change rule, used to get the TZ abbrev
+    time_t t = myTimezone.toLocal(epoch, &tcr);
+    info->tm_year = year(t);
+    info->tm_hour = hour(t); 
+    info->tm_min = minute(t);
+    dbgprint("Seconds since 01.01.1970: %lu, actual time zone: \"%s\"", epoch, tcr->abbrev);
+    dbgprint("Local Date/Time with time zone %s applied -> %d.%d.%d %02d:%02d",
+             tcr->abbrev, day(t), month(t), info->tm_year, info->tm_hour, info->tm_min);
+#else
+    static bool initialized = false;    
+    if (!initialized) {                     // executed only once
+      initialized = true;
+      setenv("TZ", ini_block.clk_tzstring.c_str(), 1);
+      tzset();
+      dbgprint("setenv(\"TZ\",\"%s\",1) + tzset()", ini_block.clk_tzstring.c_str());
+    }    
+    dbgprint("Seconds since 01.01.1970: %lu, actual Posix TZ string: \"%s\"", epoch, getenv("TZ"));
+    // broken in Arduino ESP32 core 3.3.11 !
+    localtime_r((const time_t *)&epoch, info);
+    //
+    dbgprint("Local Date/Time with time zone (TZ) applied -> %d.%d.%d %02d:%02d",
+             info->tm_mday, info->tm_mon + 1, info->tm_year + 1900, info->tm_hour, info->tm_min);
+#endif
     return true;
   }
   dbgprint("Can't connect NTP-Server %s. Incorrect server name ?", ini_block.clk_server.c_str());
-  _claimSPI("time5");                   // claim SPI bus
+  _claimSPI("time5");                      // claim SPI bus
   udpclient.stop();
-  _releaseSPI();                          // release SPI bus
+  _releaseSPI();                           // release SPI bus
   return false;
 }
 #endif  // USE_ETHERNET
@@ -7026,27 +7236,27 @@ bool getLocalTimeEth(struct tm *info)
 //**************************************************************************************************
 void getTime()
 {
-  static int16_t delaycount = 0;                           // To reduce number of NTP requests
+  static int16_t delaycount = 0;                           // to reduce number of NTP requests
   static int16_t retrycount = 5;                           // max 5 attempts to sync time
 
   if (tft) {                                               // TFT used?
-    if (timeinfo.tm_year) {                                // Legal time found?
-      sprintf(timetxt, "%02d:%02d",                        // Yes, format to a string
+    if (timeinfo.tm_year) {                                // legal time found?
+      sprintf(timetxt, "%02d:%02d",                        // format to a string
               timeinfo.tm_hour,
               timeinfo.tm_min);
     }
-    if (--delaycount <= 0) {                               // Sync every 24 hours
-      delaycount = 1440;                                   // Reset counter to 1440min (24 hours)
-      if (timeinfo.tm_year) {                              // Legal time found?
+    if (--delaycount <= 0) {                               // sync every 24 hours
+      delaycount = 1440;                                   // reset counter to 1440min (24 hours)
+      if (timeinfo.tm_year) {                              // legal time found?
         dbgprint("Sync TOD, old value is %s", timetxt);
       }
       dbgprint("Sync TOD");
 #ifdef USE_ETHERNET
-      if (!getLocalTimeEth (&timeinfo)) {                  // Read from NTP server
+      if (!getLocalTimeEth (&timeinfo)) {                  // read from NTP server
 #else
-      if (!getLocalTime (&timeinfo)) {                     // Read from NTP server
+      if (!getLocalTime (&timeinfo)) {                     // read from NTP server
 #endif
-        dbgprint("Failed to obtain time!");                // Error
+        dbgprint("Failed to obtain time!");                // error
         timeinfo.tm_year = 0;                              // Set current time to illegal
         if (retrycount) {                                  // Give up syncing?
           retrycount--;                                    // No try again
@@ -7238,93 +7448,26 @@ void handle_spec()
 //**************************************************************************************************
 //                                     S P F T A S K                                               *
 //**************************************************************************************************
-// Handles display of text, time and volume on TFT & some other low priority stuff                 *
+// Handles display of text, time and volume on TFT & some other low priority stuff.                *
 // This task runs on a low priority.                                                               *
 //**************************************************************************************************
 void spfTask (void *parameter)
 {
   while (true) {
-    handle_spec();                                           // Maybe some special funcs?
-    vTaskDelay(80 / portTICK_PERIOD_MS);                     // Pause for a short time
+    handle_spec();                                         // some special functions
+    vTaskDelay(80 / portTICK_PERIOD_MS);                   // pause for a short time
   }
-  //vTaskDelete(NULL);                                       // Will never arrive here
+  //vTaskDelete(NULL);                                       // will never arrive here
 }
 
 //**************************************************************************************************
-//                   NEEDED FOR SOFT WIRE COMMUNICATION WITH PCF8574                               *
+//                                   S H O W P R E S E T                                           *
 //**************************************************************************************************
-// As of today (9/2018) the Arduino "Wire" Library (I2C) for the ESP32 is highly unstable. See     *
-// discussions in many web forums. Impulses come delayed or not at all. Sometimes the communica-   *
-// tion stops completely. So we don't use the Library "Wire" but low level I2C functions as        *
-// provided by Espressif instead                                                                   *
-//**************************************************************************************************
-
-#define I2C_MASTER_SCL_IO          (gpio_num_t)I2C_SCL_PIN   //GPIO_NUM_33  // gpio number for I2C master clock
-#define I2C_MASTER_SDA_IO          (gpio_num_t)I2C_SDA_PIN   //GPIO_NUM_32  // gpio number for I2C master data
-#define I2C_MASTER_NUM             I2C_NUM_0                 // I2C port number for master dev (0/1)
-#define I2C_MASTER_TX_BUF_DISABLE  0                         // I2C master does not need buffer
-#define I2C_MASTER_RX_BUF_DISABLE  0                         // I2C master does not need buffer
-#define I2C_MASTER_FREQ_HZ         100000                    // I2C master clock frequency
-#define ACK_CHECK_EN               0x1                       // I2C master will check ack from slave
-#define ACK_CHECK_DIS              0x0                       // I2C master will not check ack from slave
-
-void I2CwireBegin (void)
-{
-  i2c_config_t conf;
-  conf.mode             = I2C_MODE_MASTER;
-  conf.sda_io_num       = I2C_MASTER_SDA_IO;
-  conf.sda_pullup_en    = GPIO_PULLUP_DISABLE;
-  conf.scl_io_num       = I2C_MASTER_SCL_IO;
-  conf.scl_pullup_en    = GPIO_PULLUP_DISABLE;
-  conf.master.clk_speed = I2C_MASTER_FREQ_HZ;
-  i2c_param_config(I2C_MASTER_NUM, &conf);
-  i2c_driver_install(I2C_MASTER_NUM, conf.mode,
-                     I2C_MASTER_RX_BUF_DISABLE,
-                     I2C_MASTER_TX_BUF_DISABLE, 0);
-}
-
-
-
-//**************************************************************************************************
-//                     W I R E W R I T E      (writing 1 byte)                                     *
-//**************************************************************************************************
-uint8_t I2CwireWrite(uint8_t address, uint8_t toSend)
-{
-  i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-  i2c_master_start(cmd);
-  i2c_master_write_byte(cmd, (address << 1) | I2C_MASTER_WRITE , ACK_CHECK_EN);
-  i2c_master_write_byte(cmd, toSend, ACK_CHECK_EN);
-  i2c_master_stop(cmd);
-  esp_err_t ret = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, 100 / portTICK_RATE_MS);
-  i2c_cmd_link_delete(cmd);
-  return ret;
-}
-
-
-//**************************************************************************************************
-//                       W I R E R E A D       (reading 1 byte)                                    *
-//**************************************************************************************************
-uint8_t I2CwireRead(uint8_t address, uint8_t *data)
-{
-  i2c_cmd_handle_t cmd = i2c_cmd_link_create();
-  i2c_master_start(cmd);
-  i2c_master_write_byte(cmd, (address << 1) | I2C_MASTER_READ, ACK_CHECK_EN);
-  i2c_master_read_byte(cmd, data, I2C_MASTER_NACK);
-  i2c_master_stop(cmd);
-  esp_err_t ret = i2c_master_cmd_begin(I2C_MASTER_NUM, cmd, 100 / portTICK_RATE_MS);
-  i2c_cmd_link_delete(cmd);
-  if (ret) {
-    *data = 0xFF;
-    return 1;  //  error
-  }
-  return 0;
-}
-
-void showPreset(int8_t preset)                             // helper function for handlePCF8574()
+void showPreset(int8_t preset) 
 {
   String tmp = readhostfrompref(preset);                   // get host spec and possible comment
   if (tmp != "") {                                         // valid preset ?
-    // Show just comment if available.  Otherwise the preset itself.
+    // Show comment if available.  Otherwise the preset itself.
     int16_t inx = tmp.indexOf("#");                        // get position of "#"
     if (inx > 0) {                                         // hash sign present?
       tmp.remove(0, inx + 1);                              // yes, remove non-comment part
@@ -7334,6 +7477,42 @@ void showPreset(int8_t preset)                             // helper function fo
     //dbgprint("Selected station is %d, %s", preset, tmp.c_str());
     tftset(2, tmp);                                        // set screen segment
     //tftset(4, "New station selected.");
+  }
+}
+
+#ifdef FRONT_PANEL_BUTTONS
+//**************************************************************************************************
+//                      I2C COMMUNICATION WITH PCF8574 EXTENDER BOARD                              *
+//**************************************************************************************************
+
+void I2CwireBegin (void)
+{
+  Wire.begin(I2C_SDA_PIN, I2C_SCL_PIN);
+}
+
+
+//**************************************************************************************************
+//                     W I R E W R I T E      (writing 1 byte)                                     *
+//**************************************************************************************************
+uint8_t I2CwireWrite(uint8_t address, uint8_t toSend)
+{
+  Wire.beginTransmission(address);
+  Wire.write(toSend);
+  return Wire.endTransmission();
+}
+
+//**************************************************************************************************
+//                       W I R E R E A D       (reading 1 byte)                                    *
+//**************************************************************************************************
+uint8_t I2CwireRead(uint8_t address, uint8_t *data)
+{
+  if (Wire.requestFrom(address, (uint8_t)1) == 1) {
+    *data = Wire.read();
+    return 0;
+  }
+  else {
+    *data = 0xFF;
+    return 1;  //  error   
   }
 }
 
@@ -7608,8 +7787,6 @@ bool handlePCF8574()
   return true;
 }
 
-
-#ifdef FRONT_PANEL_BUTTONS													
 //**************************************************************************************************
 //                                  E X T E N D E R T A S K                                        *
 //**************************************************************************************************
