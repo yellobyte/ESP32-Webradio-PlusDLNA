@@ -4,7 +4,7 @@
 //*  For ESP32, 1.8 color display, VS1053 decoder module, Ethernet module and Optical digital audio     *
 //*  output in an original Technics ST-G570 Radio Tuner case.                                           *
 //*                                                                                                     *
-//*  Based on Ed Smallenburgs (ed@smallenburg.nl) original ESP32 Radio project, version 10.06.2018.     * 
+//*  Based on Ed Smallenburgs (ed@smallenburg.nl) original ESP32 Radio project, version 10.06.2018.     *
 //*  His popular project is documented at https://github.com/Edzelf/ESP32-radio.                        *
 //*                                                                                                     *
 //*  Starting from Ed's code (Version 10.06.2018) this project has seen a lot of additions and          *
@@ -13,7 +13,7 @@
 //*   - Digital audio output added (TOSLINK optical) using a WM8805 module (China)                      *
 //*   - Usage of own VS1053 decoder board (similar to China board but with I2S output and w/o sockets)  *
 //*   - VS1053 gets patched with new firmware v2.7 at each reboot                                       *
-//*   - VU meter added on TFT display (needs above mentioned firmware patch)                            *                           
+//*   - VU meter added on TFT display (needs above mentioned firmware patch)                            *
 //*   - Debug Server on port 23 for debug output (when compiled in than the cmd server is omitted)      *
 //*   - Handling of original TECHNICS ST-G570 front panel buttons & LEDs via I2C and extender module    *
 //*   - SD card indexing code rewritten in large parts                                                  *
@@ -40,9 +40,9 @@
 // Class 2 SD cards support at least 2MB/s (16Mbit/s) speed. Only 4MHz SPI clock speed is used here
 // for stability reasons (long wires to SD-module).
 //
-// The VSPI interface is used for VS1053, TFT and SD. 
+// The VSPI interface is used for VS1053, TFT and SD.
 //
-// Wiring: 
+// Wiring:
 // Most pins (except 18,19,23 of the SPI interface) can be configured in the config page of the web interface.
 // ESP32dev Signal  Wired to LCD    Wired to VS1053  SDCARD  Ethernet   Wired to the rest
 // -------- ------  -------------   ---------------  ------  ---------  ------
@@ -75,11 +75,11 @@
 //
 
 // Define the version number, also used for webserver as Last-Modified header:
-#define VERSION "30 Aug 2026 19:10"
+#define VERSION "03 Sep 2026 00:57"
 //
 // Defined in platform.ini as it affects soapESP32 too !
 //#define USE_ETHERNET                   // Use Ethernet/LAN instead of WiFi builtin
-// 
+//
 
 #define ENABLE_CMDSERVER               // Enable port 80 web server (Control Website)
 #define ENABLE_SOAP                    // Enable SOAP/DLNA access to media server
@@ -218,7 +218,7 @@ Timezone myTimezone(CEST, CET);
 // Max mp3-files to recognize on SD card (we skip all the others)
 #define SD_MAXFILES 500
 //length of longest debug command string plus two spaces for CR + LF (from client on port 23)
-#define MAXSIZE_TELNET_CMD 10 
+#define MAXSIZE_TELNET_CMD 10
 // defaults, can be overridden by preferences
 IPAddress local_IP(192, 168, 1, 99);
 IPAddress gateway(192, 168, 1, 1);
@@ -264,12 +264,12 @@ void        mp3loop();
 void        playTask(void * parameter);       // Task to play the stream
 void        spfTask(void * parameter);        // Task for special functions
 void        getTime();
-#ifdef FRONT_PANEL_BUTTONS			
+#ifdef FRONT_PANEL_BUTTONS
 void        extenderTask(void * parameter);   // Task for communication with PCF8574 ICs
-#endif			
+#endif
 void        vumeterTask(void * parameter);    // Task for showing vu meter readings
 bool        handlePCF8574();
-#ifdef USE_ETHERNET
+#if !defined(USE_TIMEZONE_LIB) && defined(USE_ETHERNET)
 void        tzset(void);
 int         setenv(const char *name, const char *value, int overwrite);
 #endif
@@ -315,7 +315,7 @@ struct ini_struct
 #endif
 #ifdef ENABLE_INFRARED
   int8_t         ir_pin;                             // GPIO connected to output of IR decoder
-#endif  
+#endif
   int8_t         enc_clk_pin;                        // GPIO connected to CLK of rotary encoder
   int8_t         enc_dt_pin;                         // GPIO connected to DT of rotary encoder
   int8_t         enc_sw_pin;                         // GPIO connected to SW of rotary encoder
@@ -417,7 +417,7 @@ WiFiClient        dbgclient;                             // An instance of the d
 bool              dbgConnectFlag = false;                // true if client connected on port 23
 #endif
 WiFiClient        mp3client;                             // An instance of the mp3 client
-#else 
+#else
 // we use Ethernet/LAN
 #if defined(ENABLE_CMDSERVER) && !defined(PORT23_ACTIVE)
 EthernetServer    cmdserver(80);                         // Instance of embedded webserver, port 80
@@ -438,9 +438,9 @@ TaskHandle_t      mainTask;                              // Taskhandle for main 
 TaskHandle_t      xplayTask;                             // Task handle for play task
 TaskHandle_t      xspfTask;                              // Task handle for special functions
 
-#ifdef FRONT_PANEL_BUTTONS													
+#ifdef FRONT_PANEL_BUTTONS
 TaskHandle_t      xextenderTask;                         // Task handle for communication with PCF8574 ICs
-#endif			
+#endif
 
 #if defined VU_METER && defined LOAD_VS1053_PATCH
 TaskHandle_t      xvumeterTask;                          // Task handle for displaying vu-meter value
@@ -518,10 +518,9 @@ const int         NTP_PACKET_SIZE = 48;                  // NTP time stamp is in
 nvs_page               nvsbuf;                           // Space for 1 page of NVS info
 const esp_partition_t* nvs;                              // Pointer to partition struct
 esp_err_t              nvserr;                           // Error code from nvs functions
-uint32_t               nvshandle = 0;                    // Handle for nvs access
-uint8_t                namespaceID;                      // Namespace ID found
+nvs_handle_t           nvshandle = 0;                    // Handle for nvs access
 char                   nvskeys[MAXKEYS][16];             // Space for NVS keys
-std::vector<keyname_t> keynames;                         // Keynames in NVS
+//std::vector<keyname_t> keynames;                         // not yet implemented
 // Rotary encoder & front panel stuff
 #define sv DRAM_ATTR static volatile
 sv uint16_t       clickcount = 0;                        // Incremented per encoder click
@@ -539,9 +538,9 @@ bool              buttonStation = false;                 // True if "Station" bu
 //
 #ifdef ENABLE_SOAP
 #ifdef USE_ETHERNET
-SoapESP32         soap(&mp3client, &udpclient, &SPIsem); // UDP/SSDP used only for WOL, global SPI lock 
+SoapESP32         soap(&mp3client, &udpclient, &SPIsem); // UDP/SSDP used only for WOL, global SPI lock
 #else
-SoapESP32         soap(&mp3client, NULL);                // UDP/SSDP not used, no global SPI lock 
+SoapESP32         soap(&mp3client, NULL);                // UDP/SSDP not used, no global SPI lock
 #endif
 bool              buttonMediaserver = false;             // True if "SD" & "Station" buttons were pressed at once
 std::vector<soapChain_t> soapChain;                      // For finding our way back up to root ("0")
@@ -713,7 +712,7 @@ class VS1053
         if (digitalRead(dreq_pin) ||             // break when VS1053 is ready for data/next SCI command
             (maxDelay_us > 0 && ((micros() - previousTime) > maxDelay_us))) { // or timeout
           break;
-        }  
+        }
         NOP();                                   // Very short delay
       }
     }
@@ -947,7 +946,7 @@ void VS1053::begin()
     loadVS1053Patch();
     delay(10);
     await_data_request(2000000);                       // wait for DREQ to rise (max 2sec)
-#endif    
+#endif
     // Switch on the analog parts
     write_register(SCI_AUDATA, 44100 + 1);             // 44.1kHz + stereo
     // The next clocksetting allows higher SPI clocking
@@ -971,15 +970,15 @@ void VS1053::begin()
     uint16_t stat = read_register(SCI_STATUS);
     dbgprint("VS1053B Status Register = 0x%04X", stat);
 #ifdef LOAD_VS1053_PATCH
-    // patch V2.7 is needed to fix SS_REFERENCE_SEL bug 
+    // patch V2.7 is needed to fix SS_REFERENCE_SEL bug
     if (!(stat & 0x000C)) {
       // Analog power down has been turned off
       dbgprint("VS1053B setting SS_REFERENCE_SEL bit(s) [see VS1053-patches.pdf, Chapter 1.1]");
       write_register(SCI_STATUS, stat | SS_REFERENCE_SEL);
       stat = read_register(SCI_STATUS);
       dbgprint("VS1053B Status Register now = 0x%04X", stat);
-    }  
-#endif    
+    }
+#endif
 #if defined VU_METER && defined LOAD_VS1053_PATCH
     // patch V2.7 is needed to get VU meter feature
     dbgprint("VS1053B setting VU-Meter bit [see VS1053-patches.pdf, Chapter 1.2]");
@@ -988,13 +987,13 @@ void VS1053::begin()
     dbgprint("VS1053B Status Register now = 0x%04X", stat);
 #endif
 #ifdef ENABLE_I2S
-    // Enabling I2S with MCLK output and sample rate 48kHz 
+    // Enabling I2S with MCLK output and sample rate 48kHz
     wram_write(0xC017, 0x00F0);
     wram_write(0xC040, 0x000C);
     dbgprint("VS1053B I2S interface enabled: MCLK active, Sample Rate = 48kHz");
-		const char *p = dbgprint("TOSLINK optical output ok.");
+    const char *p = dbgprint("TOSLINK optical output ok.");
     tftlog(p);
-#endif    
+#endif
     delay(100);
   }
 }
@@ -1128,7 +1127,7 @@ void nvsopen()
 //**************************************************************************************************
 // Clear all preferences.                                                                          *
 //**************************************************************************************************
-esp_err_t nvsclear()
+esp_err_t nvsClear()
 {
   nvsopen();                                         // Be sure to open nvs
   return nvs_erase_all(nvshandle);                   // Clear all keys
@@ -1139,7 +1138,7 @@ esp_err_t nvsclear()
 //**************************************************************************************************
 // Read a string from nvs.                                                                         *
 //**************************************************************************************************
-String nvsgetstr(const char* key)
+String nvsGetStr(const char* key)
 {
   static char nvs_buf[NVSBUFSIZE];         // Buffer for contents
   size_t      len = NVSBUFSIZE;            // Max length of the string, later real length
@@ -1161,28 +1160,28 @@ String nvsgetstr(const char* key)
 // Put a key/value pair in nvs.  Length is limited to allow easy read-back.                        *
 // Max key lenght is 15 chars (defined in nvs.h) !!!!!! No writing if no change.                   *
 //**************************************************************************************************
-esp_err_t nvssetstr(const char* key, String val)
+esp_err_t nvsSetStr(const char* key, String val)
 {
   String curcont;                                          // Current contents
   bool   wflag = true;                                     // Assume update or new key
 
   //dbgprint("Setstring for %s: %s", key, val.c_str());
   if (val.length() >= NVSBUFSIZE) {                        // Limit length of string to store
-    dbgprint("nvssetstr length failed!");
+    dbgprint("nvsSetStr length failed!");
     return ESP_ERR_NVS_NOT_ENOUGH_SPACE;
   }
   if (nvsSearch(key)) {                                    // Already in nvs?
-    curcont = nvsgetstr(key);                              // Read current value
+    curcont = nvsGetStr(key);                              // Read current value
     wflag = (curcont != val);                              // Value change?
   }
   if (wflag) {                                             // Update or new?
-    //dbgprint("nvssetstr update value");
+    //dbgprint("nvsSetStr update value");
     nvserr = nvs_set_str(nvshandle, key, val.c_str());     // Store key and value
     if (nvserr) {                                          // Check error
-      dbgprint("nvssetstr failed!");
+      dbgprint("nvsSetStr failed!");
     }
     else {
-      dbgprint("nvssetstr: %s = %s saved to NVS flash", key, val.c_str());
+      dbgprint("nvsSetStr: %s = %s saved to NVS flash", key, val.c_str());
     }
   }
   return nvserr;
@@ -1198,9 +1197,9 @@ void nvschkey (const char* oldk, const char* newk)
   String curcont;                                     // Current contents
 
   if (nvsSearch(oldk)) {                              // Old key in nvs?
-    curcont = nvsgetstr(oldk);                        // Read current value
+    curcont = nvsGetStr(oldk);                        // Read current value
     nvs_erase_key(nvshandle, oldk);                   // Remove key
-    nvssetstr(newk, curcont);                         // Insert new
+    nvsSetStr(newk, curcont);                         // Insert new
   }
 }
 
@@ -1348,7 +1347,7 @@ byte utf8ascii(byte ascii)
   }
   if (ascii > 0x7F) dbgprint("utf8ascii() ---> Special Char: 0x%02X, return: 0x%02X", ascii, res);
 
-  return res;                        
+  return res;
 }
 
 //**************************************************************************************************
@@ -1379,7 +1378,7 @@ String utf8ascii(const char *s)
 {
   int  len = strlen(s);
   char buf[len + 1];
-  
+
   strncpy(buf, s, sizeof(buf));
   utf8ascii(buf);
 
@@ -1436,7 +1435,7 @@ char* dbgprint(const char* format, ...)
       _releaseSPI();                                   // release SPI bus
       if (erg) {                                       // just to make sure the client is still connected
         char sbuf1[DEBUG_BUFFER_SIZE + 5];
-        snprintf(sbuf1, sizeof(sbuf1), "D: %s\r\n", sbuf); 
+        snprintf(sbuf1, sizeof(sbuf1), "D: %s\r\n", sbuf);
         size_t len = strlen(sbuf1);
         _claimSPI("dbg2");                             // claim SPI bus
         dbgclient.write(sbuf1, len);
@@ -1461,13 +1460,13 @@ char* dbgprint(const char* format, ...)
 bool browseMediaServer(const char *objectId, soapObjectVect_t *browseResult, const uint32_t startingIndex = 0)
 {
   bool ret = soap.browseServer(0, objectId, browseResult, startingIndex);
-  if (ret) { 
+  if (ret) {
     // browsing media server was successful though returned list can be empty
     if (browseResult->size() > 0) {
       // erase unwanted element
       for (int i = 0; i < browseResult->size(); i++) {
         if (browseResult->operator[](i).name.indexOf("stem Volu") >= 0) {
-          browseResult->erase(browseResult->begin() + i);  
+          browseResult->erase(browseResult->begin() + i);
           break;
         }
       }
@@ -1526,7 +1525,7 @@ int16_t nextSoapFileIndex(int16_t inx, int16_t delta)
       if (soapList[i].isDirectory) continue;
       if (soapList[i].fileType != fileTypeAudio) continue;
         protInfoLc = soapList[i].protInfo;
-        protInfoLc.toLowerCase();      
+        protInfoLc.toLowerCase();
         uriLc = soapList[i].uri;
         uriLc.toLowerCase();
       if (protInfoLc.indexOf("mp3") < 0 && !uriLc.endsWith(".mp3")) continue;
@@ -1534,7 +1533,7 @@ int16_t nextSoapFileIndex(int16_t inx, int16_t delta)
       break;
     }
   }
-  dbgprint("nextSoapFileIndex: soapList.size=%d inx=%d delta=%d return=%d", 
+  dbgprint("nextSoapFileIndex: soapList.size=%d inx=%d delta=%d return=%d",
            soapList.size(), inx, delta, ret);
   return ret;                                      // Return new index
 }
@@ -1549,7 +1548,7 @@ int16_t nextSoapFileIndex(int16_t inx, int16_t delta)
 bool noSubDirInSameDir(int16_t inx)
 {
   int16_t parentDir;
-  
+
   if (mp3nodeList[inx].isDirectory) return false;
 
   parentDir = mp3nodeList[inx].parentDir;
@@ -1559,7 +1558,7 @@ bool noSubDirInSameDir(int16_t inx)
     }
   }
   return true;
-}  
+}
 
 //**************************************************************************************************
 //                           F I R S T S D I N D E X I N D I R                                     *
@@ -1850,7 +1849,7 @@ int listsdtracks(const char *dirname, int level = 0, bool send = true, int paren
     }
     const char *p = file.name();
     if ((p[0] == '.') ||                               // skip hidden directories
-        (p[1] == 'S' && p[2] == 'y' && p[3] == 's')) { // and System Volume Directories 
+        (p[1] == 'S' && p[2] == 'y' && p[3] == 's')) { // and System Volume Directories
       claimSPI("close3");
       file.close();
       releaseSPI();
@@ -2052,7 +2051,7 @@ void IRAM_ATTR timer5sec()
     }
   }
   else if (dataMode & CONNECTERROR) {
-error_handling:    
+error_handling:
     if (((morethanonce > 5) && (morethanonce < 10)) ||  // happened more than 5x?
           (playlist_num > 0)) {                 // or playlist active?
       dataMode = STOPREQD;                      // stop player
@@ -2064,7 +2063,7 @@ error_handling:
       dataMode = STOPREQD;                      // stop player
       currentPreset = -1;                       // attempt to reconnect to same station
 #ifdef USE_ETHERNET
-      if (morethanonce == 0 || morethanonce == 2) // re-init ethernet chip might help 
+      if (morethanonce == 0 || morethanonce == 2) // re-init ethernet chip might help
         reInitEthernet = true;
 #endif
     }
@@ -2292,7 +2291,7 @@ void showStreamTitle(const char *ml, bool full)
       tftset(1, streamtitle);                    // set screen segment text middle part
     }
     lastArtistSong = streamtitle;
-  }  
+  }
 }
 
 //**************************************************************************************************
@@ -2302,7 +2301,7 @@ void showStreamTitle(const char *ml, bool full)
 //**************************************************************************************************
 void stopMp3client()
 {
-P1SMP3:  
+P1SMP3:
   _claimSPI("stpmp3cl1");                               // claim SPI bus
   uint8_t erg = mp3client.connected();
   _releaseSPI();                                        // release SPI bus
@@ -2443,7 +2442,7 @@ void quickSdCheck()
 {
   uint8_t c;
   int index = 0;
-  
+
   if (SD_okay && SD_mp3fileCount > 0 && !mp3file) {
     for (int i=1; i < mp3nodeList.size(); i++) {        // 0 is root index, so we start with 1
       if (!mp3nodeList[i].isDirectory) {
@@ -2518,14 +2517,14 @@ bool handleID3 (String& path)
     }
     else {
       lastAlbumStation = "Playing from media server";      // album info can be missing
-    }  
-  }  
-  dbgprint("handleID3: Looking for ID3 tags in %s", 
+    }
+  }
+  dbgprint("handleID3: Looking for ID3 tags in %s",
     (char*)path/*substring((source==SDCARD)?6:4)*/.c_str());
   p = path.substring(path.lastIndexOf("/") + 1).c_str();   // Point just to filename
-  showStreamTitle(p, true);                                // filename as title (lastArtistSong), but will 
-                                                           // be overridden if mp3 tags found 
-  if (source == SDCARD) {                                                           
+  showStreamTitle(p, true);                                // filename as title (lastArtistSong), but will
+                                                           // be overridden if mp3 tags found
+  if (source == SDCARD) {
     claimSPI("id30");
     mp3file = SD.open(path.substring(6));                  // Open the file
     releaseSPI();
@@ -2598,7 +2597,7 @@ bool handleID3 (String& path)
       }
     }
   }
-#ifdef ENABLE_SOAP  
+#ifdef ENABLE_SOAP
   else {
     // no need to scan for ID3 tags, we get it from mediaserver
     if (soapList[currentIndex].artist.length()) {            // artist can be missing
@@ -2613,13 +2612,13 @@ bool handleID3 (String& path)
       dbgprint("SOAP TALB = %s", soapList[currentIndex].album.c_str());
     }
   }
-#endif  
+#endif
 
   if (artttl.length()) lastArtistSong = artttl;
   if (encoderMode != SELECT) {                               // don't disturb selecting SD tracks
     tftset(1, lastArtistSong);                               // Show artist and title
     tftset(3, lastAlbumStation  );                           // show album
-  }    
+  }
   return true;
 }
 
@@ -2727,7 +2726,7 @@ String readhostfrompref(int8_t preset)
   sprintf(tkey, "preset_%02d", preset);            // Form the search key
   if (nvsSearch(tkey)) {                           // Does it exists?
     // Get the contents
-    return nvsgetstr(tkey);                        // Get the station (or empty string)
+    return nvsGetStr(tkey);                        // Get the station (or empty string)
   }
   else {
     return String("");                             // Not found
@@ -2795,7 +2794,7 @@ void readProgButtons()
   for (i = 0; (pinnr = progpin[i].gpio) >= 0; i++) {     // Scan for all programmable pins
     sprintf(mykey, "gpio_%02d", pinnr);                 // Form key in preferences
     if (nvsSearch(mykey)) {
-      val = nvsgetstr(mykey);                            // Get the contents
+      val = nvsGetStr(mykey);                            // Get the contents
       if (val.length()) {                                // Does it exists?
         if (!progpin[i].reserved) {                      // Do not use reserved pins
           progpin[i].avail = true;                       // This one is active now
@@ -2810,7 +2809,7 @@ void readProgButtons()
   for (i = 0; (pinnr = touchpin[i].gpio) >= 0; i++) {    // Scan for all programmable pins
     sprintf(mykey, "touch_%02d", pinnr);                 // Form key in preferences
     if (nvsSearch(mykey)) {
-      val = nvsgetstr(mykey);                            // Get the contents
+      val = nvsGetStr(mykey);                            // Get the contents
       if (val.length()) {                                // Does it exists?
         if (!touchpin[i].reserved) {                     // Do not use reserved pins
           touchpin[i].avail = true;                      // This one is active now
@@ -2862,19 +2861,20 @@ void reservepin(int8_t rpinnr)
 #endif
 
 //**************************************************************************************************
-//                                       R E A D I O P R E F S                                     *
+//                                   R E A D G P I O P R E F S                                     *
 //**************************************************************************************************
-// Scan the preferences for IO-pin definitions.                                                    *
+// Scan the preferences for GPIO-pin definitions.                                                  *
 //**************************************************************************************************
-void readIOprefs()
+void readGPIOprefs()
 {
   struct iosetting
   {
-    const char* gname;                                   // Name in preferences
-    int8_t*     gnr;                                     // GPIO pin number
-    int8_t      pdefault;                                // Default pin
+    const char* gname;                                   // name in preferences
+    int8_t*     gpioNr;                                  // pointer to variable holding GPIO pin number
+    int8_t      pdefault;                                // default pin setting
   };
-  struct iosetting klist[] = {                           // List of I/O related keys
+
+  struct iosetting klist[] = {                           // list of all GPIO related keys
 #ifdef ENABLE_INFRARED
     { "pin_ir",       &ini_block.ir_pin,          35 },  // use 35 if needed
 #endif
@@ -2895,27 +2895,27 @@ void readIOprefs()
     { "pin_spi_mosi", &ini_block.spi_mosi_pin,    23 },
     { NULL,           NULL,                        0 }   // End of list
   };
-  int         i;                                         // Loop control
-  int         count = 0;                                 // Number of keys found
-  String      val;                                       // Contents of preference entry
-  int8_t      ival;                                      // Value converted to integer
-  int8_t*     p;                                         // Points to variable
 
-  for (i = 0; klist[i].gname; i++) {                     // Loop trough all I/O related keys
-    p = klist[i].gnr;                                    // Point to target variable
-    ival = klist[i].pdefault;                            // Assume pin number to be the default
-    if (nvsSearch (klist[i].gname)) {                    // Does it exist?
-      val = nvsgetstr(klist[i].gname);                   // Read value of key
-      if (val.length()) {                                // Parameter in preference?
-        count++;                                         // Yes, count number of filled keys
-        ival = val.toInt();                              // Convert value to integer pinnumber
+  int     i;
+  String  val;                                           // contents of preference entry
+  int8_t  ival;                                          // value converted to integer
+  int8_t* p;
+
+  dbgprint("final GPIO settings after reading preferences from NVS:");
+  for (i = 0; klist[i].gname; i++) {                     // loop trough all I/O related keys
+    p = klist[i].gpioNr;                                 // pointer to target variable
+    ival = klist[i].pdefault;                            // for the time being set default pin number
+    if (nvsSearch (klist[i].gname)) {                    // exists pin setting in preferences ?
+      val = nvsGetStr(klist[i].gname);                   // read value of key
+      if (val.length()) {                                // not zero length ?
+        ival = val.toInt();                              // override default with value given in preferences
       }
     }
-#ifdef ENABLE_DIGITAL_INPUTS        
-    reservepin(ival);                                    // Set pin to "reserved"
-#endif        
-    *p = ival;                                           // Set pinnumber in ini_block
-    dbgprint("%s set to %d", klist[i].gname, ival);      // Show result
+#ifdef ENABLE_DIGITAL_INPUTS
+    reservepin(ival);                                    // set pin to "reserved"
+#endif
+    *p = ival;                                           // set final GPIO pin number in ini_block
+    dbgprint("%s set to %d", klist[i].gname, ival);      // show result
   }
 }
 
@@ -2937,7 +2937,7 @@ String readPrefs(bool output)
 
   i = 0;
   while (*(key = nvskeys[i])) {                            // Loop trough all available keys
-    val = nvsgetstr(key);                                  // Read value of this key
+    val = nvsGetStr(key);                                  // Read value of this key
     cmd = String(key) +                                    // Yes, form command
           String(" = ") +
           val;
@@ -2987,7 +2987,7 @@ void scanserial()
     /*c =  (char)*/Serial.read();                 // Yes, read the next input character
     // TEST
     //Serial.write(c);                            // Echo
-    /* 
+    /*
       len = serialcmd.length();                   // Get the length of the current string
       if ((c == '\n') || (c == '\r')) {
         if (len) {
@@ -3086,7 +3086,7 @@ void scanIR()
   if (ir_value) {                                          // Any input?
     sprintf(mykey, "ir_%04X", ir_value);                   // Form key in preferences
     if (nvsSearch (mykey)) {
-      val = nvsgetstr(mykey);                              // Get the contents
+      val = nvsGetStr(mykey);                              // Get the contents
       dbgprint("IR code %04X received. Will execute %s",
                  ir_value, val.c_str());
       reply = analyzeCmd(val.c_str());                     // Analyze command and handle it
@@ -3125,7 +3125,7 @@ void  mk_lsan()
   for (i = 0; i < 100; i++) {                           // Examine wifi_00 .. wifi_99
     sprintf(key, "wifi_%02d", i);                       // Form key in preferences
     if (nvsSearch(key)) {                               // Does it exists?
-      buf = nvsgetstr(key);                             // Get the contents
+      buf = nvsGetStr(key);                             // Get the contents
       inx = buf.indexOf("/");                           // Find separator between ssid and password
       if (inx > 0) {                                    // Separator found?
         lpw = buf.substring(inx + 1);                   // Isolate password
@@ -3149,45 +3149,43 @@ void  mk_lsan()
 #endif  // USE_ETHERNET
 
 //**************************************************************************************************
-//                                 C H K _ S T A T I C I P S                                       *
+//                                 C H K S T A T I C I P S                                       *
 //**************************************************************************************************
-// Check if we are supposed to use DHCP or fixed IPs, found in preferences                         *
-//                                                                                                 *
+// Decide to use DHCP or fixed IPs (if found in preferences)                                       *
 //**************************************************************************************************
-void chk_staticIPs()
+void chkStaticIPs()
 {
-  String    buf;                                     // contains value of key
-  //const char* p;
+  String    buf;
   IPAddress addr;
 
-  dbgprint("Search for local IP in preferences");
-  if (nvsSearch("ip")) {                             // Does it exists?
-    buf = nvsgetstr("ip");                           // Get the contents
+  dbgprint("Search for static IP settings in preferences:");
+  if (nvsSearch("ip")) {
+    buf = nvsGetStr("ip");                           // get the value
     if (addr.fromString(buf.c_str())) {
       local_IP = addr;
       if (!dhcpRequested) staticIPs = true;          // dhcpRequested is only true when rotary encoder is pressed while booting
-      dbgprint("Prefs: ip = %s", buf.c_str());
+      dbgprint("ip = %s", buf.c_str());
     }
   }
-  if (nvsSearch("ip_dns")) {                         // Does it exists?
-    buf = nvsgetstr("ip_dns");                       // Get the contents
+  if (nvsSearch("ip_dns")) {
+    buf = nvsGetStr("ip_dns");                       // get the value
     if (addr.fromString(buf.c_str())) {
       primaryDNS = addr;
-      dbgprint("Prefs: ip_dns = %s", buf.c_str());
+      dbgprint("ip_dns = %s", buf.c_str());
     }
   }
-  if (nvsSearch("ip_gateway")) {                     // Does it exists?
-    buf = nvsgetstr("ip_gateway");                   // Get the contents
+  if (nvsSearch("ip_gateway")) {
+    buf = nvsGetStr("ip_gateway");                   // get the value
     if (addr.fromString(buf.c_str())) {
       gateway = addr;
-      dbgprint("Prefs: ip_gateway = %s", buf.c_str());
+      dbgprint("ip_gateway = %s", buf.c_str());
     }
   }
-  if (nvsSearch("ip_subnet")) {                      // Does it exists?
-    buf = nvsgetstr("ip_subnet");                    // Get the contents
+  if (nvsSearch("ip_subnet")) {
+    buf = nvsGetStr("ip_subnet");                    // get the value
     if (addr.fromString(buf.c_str())) {
       subnet = addr;
-      dbgprint("Prefs: ip_subnet = %s", buf.c_str());
+      dbgprint("ip_subnet = %s", buf.c_str());
     }
   }
 }
@@ -3236,7 +3234,7 @@ void getsettings()
     sprintf(tkey, "preset_%02d", i);                  // Preset plus number
     if (nvsSearch(tkey)) {                            // Does it exists?
       // Get the contents
-      statstr = nvsgetstr(tkey);                      // Get the station
+      statstr = nvsGetStr(tkey);                      // Get the station
       // Show just comment if available.  Otherwise the preset itself.
       inx = statstr.indexOf("#");                     // Get position of "#"
       if (inx > 0) {                                  // Hash sign present?
@@ -3279,53 +3277,6 @@ void tftlog(const char *str, uint16_t textColor)
 }
 
 //**************************************************************************************************
-//                                   F I N D N S I D                                               *
-//**************************************************************************************************
-// Find the namespace ID for the namespace passed as parameter.                                    *
-//**************************************************************************************************
-uint8_t FindNsID (const char* ns)
-{
-  esp_err_t                 result = ESP_OK;                 // Result of reading partition
-  uint32_t                  offset = 0;                      // Offset in nvs partition
-  uint8_t                   i;                               // Index in Entry 0..125
-  uint8_t                   bm;                              // Bitmap for an entry
-  uint8_t                   res = 0xFF;                      // Function result
-
-  while (offset < nvs->size)
-  {
-    result = esp_partition_read(nvs, offset,                 // Read 1 page in nvs partition
-                                &nvsbuf,
-                                sizeof(nvsbuf));
-    if (result != ESP_OK) {
-      dbgprint("Error reading NVS!");
-      break;
-    }
-    i = 0;
-    while (i < 126) {
-      bm = (nvsbuf.Bitmap[i / 4] >> ((i % 4) * 2));          // Get bitmap for this entry,
-      bm &= 0x03;                                            // 2 bits for one entry
-      if ((bm == 2) &&
-          (nvsbuf.Entry[i].Ns == 0) &&
-          (strcmp (ns, nvsbuf.Entry[i].Key) == 0)) {
-        res = nvsbuf.Entry[i].Data & 0xFF;                   // Return the ID
-        offset = nvs->size;                                  // Stop outer loop as well
-        break;
-      }
-      else {
-        if (bm == 2) {
-          i += nvsbuf.Entry[i].Span;                         // Next entry
-        }
-        else {
-          i++;
-        }
-      }
-    }
-    offset += sizeof(nvs_page);                              // Prepare to read next page in nvs
-  }
-  return res;
-}
-
-//**************************************************************************************************
 //                            B U B B L E S O R T K E Y S                                          *
 //**************************************************************************************************
 // Bubblesort the nvskeys.                                                                         *
@@ -3349,48 +3300,36 @@ void bubbleSortKeys(uint16_t n)
 //**************************************************************************************************
 //                                      F I L L K E Y L I S T                                      *
 //**************************************************************************************************
-// File the list of all relevant keys in NVS.                                                      *
-// The keys will be sorted.                                                                        *
+// File the key list with all relevant keys from our namespace in NVS. Then sort them.             *
 //**************************************************************************************************
 void fillkeylist()
 {
-  esp_err_t result = ESP_OK;                                   // Result of reading partition
-  uint32_t  offset = 0;                                        // Offset in nvs partition
-  uint16_t  i;                                                 // Index in Entry 0..125.
-  uint8_t   bm;                                                // Bitmap for an entry
-  uint16_t  nvsinx = 0;                                        // Index in nvskey table
+  nvs_iterator_t it = NULL;
+  nvs_entry_info_t info;
+  esp_err_t res;
+  uint16_t  nvsinx = 0;                                        // index in nvs key list
+  uint16_t  i;
+  size_t    length;
 
-  keynames.clear();                                            // Clear the list
-  while (offset < nvs->size) {
-    result = esp_partition_read(nvs, offset,                   // Read 1 page in nvs partition
-                                &nvsbuf,
-                                sizeof(nvsbuf));
-    if (result != ESP_OK) {
-      dbgprint("Error reading NVS!");
-      break;
+  //keynames.clear();                                            // not yet implemented
+
+  res = nvs_entry_find_in_handle(nvshandle, NVS_TYPE_STR, &it);
+  while (res == ESP_OK) {
+    nvs_entry_info(it, &info);
+    if (info.type == NVS_TYPE_STR) {
+      strcpy(nvskeys[nvsinx++], info.key);
+      if (nvsinx == MAXKEYS) break;
     }
-    i = 0;
-    while (i < 126) {
-      bm = (nvsbuf.Bitmap[i / 4] >> ((i % 4) * 2));            // Get bitmap for this entry,
-      bm &= 0x03;                                              // 2 bits for one entry
-      if (bm == 2) {                                           // Entry is active?
-        if (nvsbuf.Entry[i].Ns == namespaceID) {               // Namespace right?
-          strcpy (nvskeys[nvsinx], nvsbuf.Entry[i].Key);       // Yes, save in table
-          if (++nvsinx == MAXKEYS) {
-            nvsinx--;                                          // Prevent excessive index
-          }
-        }
-        i += nvsbuf.Entry[i].Span;                             // Next entry
-      }
-      else {
-        i++;
-      }
-    }
-    offset += sizeof(nvs_page);                                // Prepare to read next page in nvs
+    res = nvs_entry_next(&it);
   }
-  nvskeys[nvsinx][0] = '\0';                                   // Empty key at the end
-  dbgprint("Read %d keys from NVS", nvsinx);
-  bubbleSortKeys(nvsinx);                                      // Sort the keys
+  nvs_release_iterator(it);
+  nvskeys[nvsinx][0] = '\0';                                   // empty key at the end
+  bubbleSortKeys(nvsinx);                                      // sort all keys
+
+  dbgprint("Found %d keys in namespace \"%s\" in NVS:", nvsinx, NAME);
+  for (i = 0; i < nvsinx; i++) {
+    dbgprint("nvskeys[%d] = %s", i, nvskeys[i]);
+  }
 }
 
 #ifdef USE_ETHERNET
@@ -3415,7 +3354,7 @@ void initEthernet(bool tftOutput)
     if (result == 0) {
       dbgprint("Failed to configure Ethernet via DHCP --> We use static IPs instead !");
       staticIPs = true;
-    }  
+    }
   }
   if (staticIPs) {
     _claimSPI("initEth1");                                // claim SPI bus
@@ -3430,7 +3369,7 @@ void initEthernet(bool tftOutput)
   p = dbgprint("Ethernet link status: %s", lstat == LinkON ? "up" : "down");
   if (tftOutput) {
     tftlog(p, lstat == LinkOFF ? RED : WHITE);
-  }  
+  }
   delay(100);
   _claimSPI("initEth2");                                  // claim SPI bus
   IPAddress Ip = Ethernet.localIP();
@@ -3460,7 +3399,7 @@ void checkForSDUpdate()
   if (ini_block.sd_cs_pin < 0) return;                       // SD configured ?
   if (!SD.begin(ini_block.sd_cs_pin, SPI, SDSPEED)) return;  // SD found ?
   if (SD.cardType() != CARD_NONE) {                          // SD type ok ?
-    dbgprint("Found SD-Card. Update file on SD-Card ???");
+    dbgprint("Found SD-Card. Update file on SD-Card ?");
     File myUpdateFile = SD.open(UPDATE_FILE_NAME);
     if (myUpdateFile) {
       dbgprint("Ok. Found entry with name %s", UPDATE_FILE_NAME);
@@ -3489,7 +3428,7 @@ void checkForSDUpdate()
                                                                         // Otherwise we run into a neverending update loop...
             goto START_UPDATE;
           }
-        }    
+        }
       }
       myUpdateFile.close();
       SD.end();
@@ -3500,7 +3439,7 @@ START_UPDATE:
       dbgprint("Starting firmware update...");
       tftlog("Found update file on SD.", GREEN);
       tftlog("Please wait...", GREEN);
-      if (Update.begin(updateSize)) {  
+      if (Update.begin(updateSize)) {
         size_t written = Update.writeStream(myUpdateFile);
         if (written == updateSize) {
           dbgprint("All %d bytes written successfully.", written);
@@ -3530,16 +3469,16 @@ START_UPDATE:
       }
       myUpdateFile.close();
       // we finished, now remove the binary from SD card to prevent update loop
-      SD.remove(UPDATE_FILE_NAME);  
+      SD.remove(UPDATE_FILE_NAME);
       delay(100);
       if (SD.exists(UPDATE_FILE_NAME)) {
         dbgprint("Error: Couldn't delete update file on SD.");
-        tftlog("Error deleting file.", RED); 
+        tftlog("Error deleting file.", RED);
       }
-      else {  
+      else {
         dbgprint("Update file on SD successfully deleted.");
         tftlog("Update file deleted.", GREEN);
-      }  
+      }
       SD.end();
       delay(4000);
       dsp_erase();
@@ -3547,13 +3486,13 @@ START_UPDATE:
       dsp_setTextColor(RED);                                 // Info in red
       dsp_setCursor(12, 55);                                 // Middle of screen
       dsp_print("SW-Reboot !");
-      dbgprint("System will restart in 3 seconds.\n\n"); 
+      dbgprint("System will restart in 3 seconds.\n\n");
       delay(3000);
-      ESP.restart();   
+      ESP.restart();
     }
     else {
       p = dbgprint("No update file on SD card.");
-      tftlog(p); 
+      tftlog(p);
     }
   }
   SD.end();
@@ -3572,9 +3511,9 @@ void setup()
   esp_partition_iterator_t  pi;                         // Iterator for find
   const char               *wvn = "Include file %s_html has the wrong version number!"
                                   "Replace header file.";
-#if !defined(USE_ETHERNET) || defined(ENABLE_DIGITAL_INPUTS)                                  
-  char                     *p;       
-#endif                             
+#if !defined(USE_ETHERNET) || defined(ENABLE_DIGITAL_INPUTS)
+  char                     *p;
+#endif
 
   vTaskDelay(10 / portTICK_PERIOD_MS);                  // Pause for a short time
   Serial.begin(115200);                                 // For debug
@@ -3601,13 +3540,13 @@ void setup()
     nvs = esp_partition_get (pi);                       // Get partition struct
     esp_partition_iterator_release (pi);                // Release the iterator
     dbgprint("Partition %s found, %d bytes", partname, nvs->size);
+    nvsopen();
   }
   else {
     dbgprint("Partition %s not found!", partname);      // very unlikely...
     while (true);                                       // impossible to continue
   }
-  namespaceID = FindNsID(NAME);                         // find ID of our namespace in NVS
-  fillkeylist();                                        // fill keynames with all keys
+  fillkeylist();                                        // fill key list with all keys found in preferences (NVS)
   memset(&ini_block, 0, sizeof(ini_block));             // init ini_block
   ini_block.clk_server = NTP_SERVER_DEFAULT;            // default server for NTP
 #if !defined(USE_TIMEZONE_LIB) && defined(USE_ETHERNET)
@@ -3623,8 +3562,8 @@ void setup()
   ini_block.srv_port = MEDIASERVER_DEFAULT_PORT;
   ini_block.srv_controlUrl = MEDIASERVER_DEFAULT_CONTROL_URL;
 #endif
-  readIOprefs();                                        // read pins used for SPI, TFT, VS1053, IR, Rotary encoder
-#ifdef ENABLE_DIGITAL_INPUTS  
+  readGPIOprefs();                                      // read pins used for SPI, TFT, VS1053, IR, Rotary encoder
+#ifdef ENABLE_DIGITAL_INPUTS
   int i, pinnr;
   for (i = 0; (pinnr = progpin[i].gpio) >= 0; i++) {    // Check programmable input pins
     pinMode(pinnr, INPUT_PULLUP);                       // Input for control button
@@ -3639,8 +3578,9 @@ void setup()
     dbgprint("GPIO%d is %s", pinnr, p);
   }
   readProgButtons();                                    // Program the free input pins
-#endif  
+#endif
   if (ini_block.enc_sw_pin >= 0) {
+    pinMode(ini_block.enc_sw_pin, INPUT);               // SW pin for encoder
     if (digitalRead(ini_block.enc_sw_pin) == LOW) {
       dhcpRequested = true;
       dbgprint("Rotary encoder switch is LOW -> we use DHCP");
@@ -3657,7 +3597,7 @@ void setup()
   if (ini_block.ir_pin >= 0) {
     dbgprint("Enable pin %d for IR", ini_block.ir_pin);
     pinMode(ini_block.ir_pin, INPUT);                   // Pin for IR receiver VS1838B
-    attachInterrupt(ini_block.ir_pin, isr_IR, CHANGE);  // Interrupts will be handle by isr_IR                 
+    attachInterrupt(ini_block.ir_pin, isr_IR, CHANGE);  // Interrupts will be handle by isr_IR
   }
 #endif
   if (ini_block.tft_cs_pin >= 0 ) {                    // TFT Display configured?
@@ -3703,7 +3643,7 @@ void setup()
       }
     }
   }*/
-  chk_staticIPs();
+  chkStaticIPs();
   tftlog (staticIPs ? "We use static IPs" : "We try DHCP first");
 #ifndef USE_ETHERNET
   mk_lsan();                                            // Make a list of acceptable networks
@@ -3742,9 +3682,9 @@ void setup()
 #endif
   readPrefs(false);                                    // read preferences
 #ifdef ENABLE_SOAP
-  dbgprint("Media server settings: mac=\"%s\", ip=%s, port=%d, controlUrl=\"%s\"", 
+  dbgprint("Media server settings: mac=\"%s\", ip=%s, port=%d, controlUrl=\"%s\"",
            ini_block.srv_macWOL.c_str(), ini_block.srv_ip.toString().c_str(), ini_block.srv_port, ini_block.srv_controlUrl.c_str());
-  soap.addServer(ini_block.srv_ip, ini_block.srv_port, ini_block.srv_controlUrl.c_str(), "Media Server");         
+  soap.addServer(ini_block.srv_ip, ini_block.srv_port, ini_block.srv_controlUrl.c_str(), "Media Server");
 #endif
   highestPreset = findHighestPreset();
   vs1053player->begin();                               // initialize VS1053 player
@@ -3760,7 +3700,7 @@ void setup()
   _claimSPI("setup3");                                 // claim SPI bus
 #if defined(ENABLE_CMDSERVER) && !defined(PORT23_ACTIVE)
   cmdserver.begin();                                   // start http server on port 80
-#endif  
+#endif
 #ifdef PORT23_ACTIVE
   dbgserver.begin();                                   // start debug server on port 23
 #endif
@@ -3787,9 +3727,9 @@ void setup()
   }
 #endif
 
-  // Arduino ESP32 API 3.x                                             
-  timer = timerBegin(1000000);                         // set timer clock to 1uSec (1MHz)  
-  timerAttachInterrupt(timer, &timer100);              // on timer alarm call function timer100 
+  // Arduino ESP32 API 3.x
+  timer = timerBegin(1000000);                         // set timer clock to 1uSec (1MHz)
+  timerAttachInterrupt(timer, &timer100);              // on timer alarm call function timer100
   timerAlarm(timer, TIMEOUT_MS * 1000, true, 0);       // set 100ms timeout, reload timer when expired (true), enable alarm
 
 #ifndef USE_ETHERNET
@@ -3800,9 +3740,9 @@ void setup()
   timeinfo.tm_year = 0;                                // Set TOD to illegal
   // Init settings for rotary switch (if existing).
   if ((ini_block.enc_clk_pin + ini_block.enc_dt_pin + ini_block.enc_sw_pin) > 2) {
-    pinMode(ini_block.enc_clk_pin, INPUT);             // CLK pin for encoder 
-    pinMode(ini_block.enc_dt_pin, INPUT);              // DT pin for encoder 
-    pinMode(ini_block.enc_sw_pin, INPUT);              // SW pin for encoder 
+    pinMode(ini_block.enc_clk_pin, INPUT);             // CLK pin for encoder
+    pinMode(ini_block.enc_dt_pin, INPUT);              // DT pin for encoder
+    pinMode(ini_block.enc_sw_pin, INPUT);              // SW pin for encoder
     attachInterrupt(ini_block.enc_clk_pin, isr_enc_turn, CHANGE);
     attachInterrupt(ini_block.enc_sw_pin, isr_enc_switch, CHANGE);
     dbgprint("Rotary encoder is enabled (clk:%d,dt:%d,sw:%d)",
@@ -3815,7 +3755,7 @@ void setup()
 
   if (NetworkFound) {
     getTime();                                          // Sync time
-    if (timeinfo.tm_year) time_req = true;              // Legal time found?  
+    if (timeinfo.tm_year) time_req = true;              // Legal time found?
   }
   if (tft) {
     //dbgprint("setup(): fillRect: x=%d y=%d w=%d h=%d col=BLACK",
@@ -3826,7 +3766,7 @@ void setup()
   }
   outchunk.datatyp = QDATA;                             // This chunk dedicated to QDATA
   dataQueue = xQueueCreate(QSIZE, sizeof (qdata_struct)); // Create queue for communication
-                             
+
   xTaskCreatePinnedToCore(
     playTask,                                            // Task to play data in dataQueue.
     "playTask",                                          // name of task.
@@ -3842,7 +3782,7 @@ void setup()
     NULL,                                                // parameter of the task
     1,                                                   // priority of the task
     &xspfTask);                                          // Task handle to keep track of created task
-#ifdef FRONT_PANEL_BUTTONS  														
+#ifdef FRONT_PANEL_BUTTONS
   xTaskCreate(
     extenderTask,                                        // Task for communication with PCF8574 ICs
     "extenderTask",                                      // name of task.
@@ -3850,8 +3790,8 @@ void setup()
     NULL,                                                // parameter of the task
     1,                                                   // priority of the task
     &xextenderTask);                                     // Task handle to keep track of created task
-#endif			
-#if defined VU_METER && defined LOAD_VS1053_PATCH																								 
+#endif
+#if defined VU_METER && defined LOAD_VS1053_PATCH
   xTaskCreate(
     vumeterTask,                                         // Task for displaying the vu-meter value
     "vumeterTask",                                       // name of task.
@@ -3859,7 +3799,7 @@ void setup()
     NULL,                                                // parameter of the task
     1,                                                   // priority of the task
     &xvumeterTask);                                      // Task handle to keep track of created task
-#endif			
+#endif
 #ifdef ENABLE_ESP32_HW_WDT
   esp_task_wdt_deinit();
   // Arduino ESP32 API 3.x
@@ -3870,9 +3810,9 @@ void setup()
     .trigger_panic = true,
   };
   esp_task_wdt_init(&twdt_config);                      // enable panic so ESP32 restarts
-  esp_task_wdt_add(NULL);                               // add current thread to WDT watch  
+  esp_task_wdt_add(NULL);                               // add current thread to WDT watch
   esp_task_wdt_reset();
-#endif    
+#endif
 }
 
 #if defined(ENABLE_CMDSERVER) && !defined(PORT23_ACTIVE)
@@ -3931,7 +3871,7 @@ void writePrefs()
   int        inx;                                            // Position in inputstr
 #ifndef USE_ETHERNET
   uint8_t    winx;                                           // Index in wifilist
-#endif  
+#endif
   char       c;                                              // Input character
   String     inputstr = "";                                  // Input regel
   String     key, contents;                                  // Pair for Preferences entry
@@ -3939,7 +3879,7 @@ void writePrefs()
 
   dbgprint("writePrefs() entered");
   timerStop(timer);                                          // Disable the timer
-  nvsclear();                                                // Remove all preferences
+  nvsClear();                                                // Remove all preferences
   while (true) {
     c = rinbyt(false);                                       // Get next inputcharacter
     if (c == '\n') {                                         // Newline?
@@ -3969,7 +3909,7 @@ void writePrefs()
           }
 #endif
           //dbgprint("writeprefs setstr %s = %s", key.c_str(), dstr.c_str());
-          nvssetstr (key.c_str(), contents);                 // Save new pair
+          nvsSetStr (key.c_str(), contents);                 // Save new pair
         }
       }
       inputstr = "";
@@ -3996,11 +3936,11 @@ void handlehttpreply()
   //int        n;                                         // Number of files on SD card
   bool        appendLines = true;
 
-  if (!http_reponse_flag) return;                         // Nothing to do           
+  if (!http_reponse_flag) return;                         // Nothing to do
 
   http_reponse_flag = false;
   _claimSPI("httpreply1");                                // claim SPI bus
-  uint8_t erg = cmdclient.connected(); 
+  uint8_t erg = cmdclient.connected();
   _releaseSPI();                                          // release SPI bus
   if (!erg) {
     dbgprint("handlehttpreply(): error - lost connection to cmdclient");
@@ -4017,7 +3957,7 @@ void handlehttpreply()
       handleFSf(String("config.html"));                   // Or the configuration page if in AP mode
     }
   }
-  else if (http_getcmd.length()) {  
+  else if (http_getcmd.length()) {
     // command received
     sndstr = httpHeader(String("text/html"));             // Set header
     if (http_getcmd.startsWith("getprefs")) {             // Is it a "Get preferences"?
@@ -4096,7 +4036,7 @@ void handlehttpreply()
           _releaseSPI();                             // release SPI bus
         }
       }
-    }  
+    }
   }
   else if (http_rqfile.length()) {                 // File requested?
     dbgprint("start file reply for %s", http_rqfile.c_str());
@@ -4215,7 +4155,7 @@ void xmlparse(String &line, const char *selstr, String &res)
     dbgprint("xmlparse: %s = %s", selstr, res.c_str());
   }
 }
- 
+
 //**************************************************************************************************
 //                                          X M L G E T H O S T                                    *
 //**************************************************************************************************
@@ -4334,12 +4274,12 @@ void handleSaveReq()
     return;
   }
   savetime = millis();                                   // Set time of last save
-  nvssetstr("preset", String(currentPreset));            // Save current preset
-  nvssetstr("volume", String(ini_block.reqvol));         // Save current volume
-  nvssetstr("toneha", String(ini_block.rtone[0]));       // Save current toneha
-  nvssetstr("tonehf", String(ini_block.rtone[1]));       // Save current tonehf
-  nvssetstr("tonela", String(ini_block.rtone[2]));       // Save current tonela
-  nvssetstr("tonelf", String(ini_block.rtone[3]));       // Save current tonelf
+  nvsSetStr("preset", String(currentPreset));            // Save current preset
+  nvsSetStr("volume", String(ini_block.reqvol));         // Save current volume
+  nvsSetStr("toneha", String(ini_block.rtone[0]));       // Save current toneha
+  nvsSetStr("tonehf", String(ini_block.rtone[1]));       // Save current tonehf
+  nvsSetStr("tonela", String(ini_block.rtone[2]));       // Save current tonela
+  nvsSetStr("tonelf", String(ini_block.rtone[3]));       // Save current tonelf
 }
 
 //**************************************************************************************************
@@ -4364,7 +4304,7 @@ void checkEncoderAndButtons()
     //dbgprint("dataMode=%d, playMode=%d, totalCount=%d, currentSource=%d, currentPreset=%d, enc_preset=%d, encoderMode=%d",
     //            dataMode, playMode, totalCount, currentSource, currentPreset, enc_preset, encoderMode);
     if (playMode == SDCARD) {
-      if (!SD_okay) { 
+      if (!SD_okay) {
         // No SD card present or defect
         tftset(1, "SD-Card Error !");
         encoderMode = IDLING;                               // Return to IDLE mode
@@ -4373,7 +4313,7 @@ void checkEncoderAndButtons()
         if (dataMode != STOPPED && dataMode != STOPREQD) {
           tftset(1, lastArtistSong);
           tftset(3, lastAlbumStation);
-          if (currentSource == SDCARD) 
+          if (currentSource == SDCARD)
             forceProgressBar = true;                        // got to be painted AFTER section 3 or 4 is done
           encoderMode = IDLING;                             // return to IDLE mode
         }
@@ -4394,7 +4334,7 @@ void checkEncoderAndButtons()
       if (dataMode != STOPPED && dataMode != STOPREQD) {
         tftset(1, lastArtistSong);
         tftset(3, lastAlbumStation);
-        if (currentSource == MEDIASERVER) 
+        if (currentSource == MEDIASERVER)
           forceProgressBar = true;                          // Got to be painted >>after<< section 3 or 4 is done
         encoderMode = IDLING;                                  // Return to IDLE mode
       }
@@ -4439,16 +4379,16 @@ void checkEncoderAndButtons()
           soapChain.pop_back();                                  // delete last element in chain (current level)
           soapChain.back().startingIndex = 0;                    // start displaying items at position 0
           soapChain_t up = soapChain.back();                     // retrieve last element in chain (one level higher)
-          dbgprint("Search in media server container \"%s\" (child count: %d, startingIndex: 0)", 
+          dbgprint("Search in media server container \"%s\" (child count: %d, startingIndex: 0)",
                    up.name.c_str(), up.size);
           tftset(4, "Browse media server...");
-          delay(200);                       
+          delay(200);
           bool ret = browseMediaServer(up.id.c_str(), &soapList);
           if (ret) {                                             // browsing mediaserver one level higher
             if (soapList.size() > 0) {
               tftset(4, "Turn to select directory  or track.\n"  // Show current option
                         "Press to confirm.");
-              enc_nodeIndex = 0;                                 // first entry on that level 
+              enc_nodeIndex = 0;                                 // first entry on that level
               tmp = soapList[enc_nodeIndex].name;
               if (soapList[enc_nodeIndex].isDirectory) {
                 tftset(2, tmp);
@@ -4456,7 +4396,7 @@ void checkEncoderAndButtons()
               else {
                 String protInfoLc = soapList[enc_nodeIndex].protInfo,
                        uriLc = soapList[enc_nodeIndex].uri;
-                protInfoLc.toLowerCase();       
+                protInfoLc.toLowerCase();
                 uriLc.toLowerCase();
                 if ((protInfoLc.indexOf("mp3") < 0 && !uriLc.endsWith(".mp3")) ||
                     soapList[enc_nodeIndex].fileType != fileTypeAudio)
@@ -4486,7 +4426,7 @@ void checkEncoderAndButtons()
     }
 #ifdef ENABLE_SOAP
     else { // buttonReturn & encoderMode == IDLING
-      if (playMode == MEDIASERVER) { 
+      if (playMode == MEDIASERVER) {
         // we want to stop the song and show the current directory
         if (dataMode != STOPPED && dataMode != STOPREQD) {
             dbgprint("STOP (return button while playing from media server)");
@@ -4497,17 +4437,17 @@ void checkEncoderAndButtons()
         delay(200);
         if (soapChain.size() > 1) {                              // no action if we are in root
           soapChain_t up = soapChain.back();                     // retrieve last element in chain (current level)
-          dbgprint("Search in media server container \"%s\" (child count: %d, startingIndex: 0)", 
+          dbgprint("Search in media server container \"%s\" (child count: %d, startingIndex: 0)",
                    up.name.c_str(), up.size);
           tftset(4, "Browse media server...");
-          delay(200);                       
+          delay(200);
           bool ret = browseMediaServer(up.id.c_str(), &soapList);
           if (ret) {                                             // browsing mediaserver one level higher
             if (soapList.size() > 0) {
               encoderMode = SELECT;
               tftset(4, "Turn to select directory  or track.\n"  // Show current option
                         "Press to confirm.");
-              enc_nodeIndex = 0;                                 // first entry on that level 
+              enc_nodeIndex = 0;                                 // first entry on that level
               tmp = soapList[enc_nodeIndex].name;
               if (soapList[enc_nodeIndex].isDirectory) {
                 tftset(2, tmp);
@@ -4515,7 +4455,7 @@ void checkEncoderAndButtons()
               else {
                 String protInfoLc = soapList[enc_nodeIndex].protInfo,
                        uriLc = soapList[enc_nodeIndex].uri;
-                protInfoLc.toLowerCase();       
+                protInfoLc.toLowerCase();
                 uriLc.toLowerCase();
                 if ((protInfoLc.indexOf("mp3") < 0 && !uriLc.endsWith(".mp3")) ||
                     soapList[enc_nodeIndex].fileType != fileTypeAudio)
@@ -4538,7 +4478,7 @@ void checkEncoderAndButtons()
         }
       }
     }
-#endif    
+#endif
     return;
   }
   if (buttonRepeatMode) {
@@ -4595,12 +4535,12 @@ void checkEncoderAndButtons()
   if (doubleClick) {                                      // Double click switches between Station/SD/DLNA modes
     dbgprint("Double click");
     doubleClick = false;
-    if (playMode == SDCARD) 
+    if (playMode == SDCARD)
       buttonStation = true;
-#ifdef ENABLE_SOAP     
-    else if (playMode == STATION) 
+#ifdef ENABLE_SOAP
+    else if (playMode == STATION)
       buttonMediaserver = true;
-#endif      
+#endif
     else // playMode == MEDIASERVER
       buttonSD = true;
     // no return ... will be handled immediately
@@ -4608,10 +4548,10 @@ void checkEncoderAndButtons()
   if (buttonSD) {                                           // Handle button requesting SD mode
     dbgprint("SD mode requested");
     buttonSD = false;
-#ifdef ENABLE_SOAP    
+#ifdef ENABLE_SOAP
     soapList.clear();                                       // Free memory space
     soapChain.clear();
-#endif    
+#endif
     if (ini_block.sd_cs_pin < 0) {                          // no SD configured ?
       return;
     }
@@ -4627,7 +4567,7 @@ void checkEncoderAndButtons()
       mp3fileRepeatFlag = NOREPEAT;
     }
     if (encoderMode != SELECT) {                          // do nothing if already selecting tracks
-      // we are not in SELECT mode yet 
+      // we are not in SELECT mode yet
       quickSdCheck();                                     // It cleares SD_okay if check is negativ
       if (SD_mp3fileCount && SD_okay) {                   // mp3-tracks on SD & SD ok ?
         encoderMode = SELECT;                             // Swich to SELECT mode
@@ -4642,7 +4582,7 @@ void checkEncoderAndButtons()
         else
           tftset(1, tmp);
       }
-      else { 
+      else {
         // error acessing SD card or re-scan needed
         encoderMode = IDLING;
         tryToMountSD = true;
@@ -4675,7 +4615,7 @@ void checkEncoderAndButtons()
     }
     return;
   }
-#ifdef ENABLE_SOAP     
+#ifdef ENABLE_SOAP
   if (buttonMediaserver) {                                  // Handle button requesting Mediaserver mode
     dbgprint("Mediaserver mode requested");
     buttonMediaserver = false;
@@ -4697,20 +4637,20 @@ void checkEncoderAndButtons()
       xQueueReset(dataQueue);
     }
     if (encoderMode != SELECT) {                            // do nothing if already selecting tracks
-      // we are not in SELECT mode yet 
+      // we are not in SELECT mode yet
       soapChain.clear();
       soapChain_t tmpId = { .id = "0", .name = "Root", .size = 0, .startingIndex = 0 };
       soapChain.push_back(tmpId);                           // first entry always represents root = "0"
       dbgprint("Search in media server container \"0\" (Root)");
       tftset(4, "Browse media server...");
-      delay(200);    
+      delay(200);
       bool ret = browseMediaServer("0", &soapList);
-      if (ret) {           
+      if (ret) {
         // browsing root of mediaserver was successful
         if (soapList.size() > 0) {
           tftset(4, "Turn to select directory  or track.\n" // Show current option
                     "Press to confirm.");
-          enc_nodeIndex = 0;                                // first entry on that level 
+          enc_nodeIndex = 0;                                // first entry on that level
         //enc_dirIndex = 0;                                 // parent dir is root (0)
           tmp = soapList[enc_nodeIndex].name;
           encoderMode = SELECT;                             // Swich to SELECT mode
@@ -4726,7 +4666,7 @@ void checkEncoderAndButtons()
         else
           tftset(1, tmp);   // cyan
       }
-      else { 
+      else {
         // error accessing media server
         dbgprint("buttonMediaserver: error accessing media server");
         encoderMode = IDLING;
@@ -4736,17 +4676,17 @@ void checkEncoderAndButtons()
         // probably media server still sleeping, send WOL message
         if (ini_block.srv_macWOL.length() > 0) {
           dbgprint("Send wake up message to MAC: %s", ini_block.srv_macWOL.c_str());
-          soap.wakeUpServer(ini_block.srv_macWOL.c_str()); 
+          soap.wakeUpServer(ini_block.srv_macWOL.c_str());
         }
       }
     }
     // TEST
-    dbgprint("Total free memory of all regions=%d (minEver=%d), freeHeap=%d (minEver=%d), minStack=%d (in Bytes)", 
-             ESP.getFreeHeap(), ESP.getMinFreeHeap(), xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize(), uxTaskGetStackHighWaterMark(NULL)); 
-    //              
+    dbgprint("Total free memory of all regions=%d (minEver=%d), freeHeap=%d (minEver=%d), minStack=%d (in Bytes)",
+             ESP.getFreeHeap(), ESP.getMinFreeHeap(), xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize(), uxTaskGetStackHighWaterMark(NULL));
+    //
     return;
-  }  
-#endif  
+  }
+#endif
   if (singleClick) {
     dbgprint("Single click");
     singleClick = false;
@@ -4794,7 +4734,7 @@ void checkEncoderAndButtons()
             tmp = mp3nodeList[inx].name;
             if (mp3nodeList[inx].isDirectory) {
               tftset(2, tmp);                                // show directories in yellow
-            }  
+            }
             else {
               if ((inx = tmp.indexOf(".mp3")) > 0 ||
                   (inx = tmp.indexOf(".MP3")) > 0) {
@@ -4805,7 +4745,7 @@ void checkEncoderAndButtons()
           }
         }
       }
-#ifdef ENABLE_SOAP      
+#ifdef ENABLE_SOAP
       else { // single click & playMode == MEDIASERVER
         if (soapList[enc_nodeIndex].isDirectory) {
           // enter directory when searchable and not empty
@@ -4817,20 +4757,20 @@ void checkEncoderAndButtons()
             tmpId.name = soapList[enc_nodeIndex].name;
             tmpId.size = soapList[enc_nodeIndex].size;
             tmpId.startingIndex = 0;
-            dbgprint("Search in media server container \"%s\" (child count: %d, startingIndex: 0)", 
+            dbgprint("Search in media server container \"%s\" (child count: %d, startingIndex: 0)",
                      soapList[enc_nodeIndex].name.c_str(), soapList[enc_nodeIndex].size);
             tftset(4, "Browse media server...");
             delay(200);
             bool ret = browseMediaServer(soapList[enc_nodeIndex].id.c_str(), &soapListTmp);
-            if (ret) { 
+            if (ret) {
               // browsing media server was successful
               if (soapListTmp.size() > 0) {
                 soapList = soapListTmp;
                 soapListTmp.clear();
                 tftset(4, "Turn to select directory  or track.\n"  // Show current option
                           "Press to confirm.");
-                soapChain.push_back(tmpId);                        // to find our way back up          
-                enc_nodeIndex = 0;                                 // first entry on that level 
+                soapChain.push_back(tmpId);                        // to find our way back up
+                enc_nodeIndex = 0;                                 // first entry on that level
                 tmp = soapList[enc_nodeIndex].name;
                 if (soapList[enc_nodeIndex].isDirectory) {
                   tftset(2, tmp);                                  // show directories in yellow
@@ -4844,7 +4784,7 @@ void checkEncoderAndButtons()
                       (inx = tmp.indexOf(".MP3")) > 0) {
                     tmp = tmp.substring(0, inx);                   // remove extension (if any)
                   }
-                  if (soapList[enc_nodeIndex].size == 0 || 
+                  if (soapList[enc_nodeIndex].size == 0 ||
                       soapList[enc_nodeIndex].fileType != fileTypeAudio ||
                       (protInfoLc.indexOf("mp3") < 0 && !uriLc.endsWith(".mp3"))) {
                     tmp += " [not mp3]";
@@ -4869,20 +4809,20 @@ void checkEncoderAndButtons()
               tftset(1, "Error accessing      media server !");
               tftset(4, "Error");
             }
-          } 
+          }
           else {
             dbgprint("singleClick: we do not browse media server: this directory has attribute size=0 or searchable=0");
             tftset(4,"Sorry, no content !");
             delay(1300);
             tftset(4, "Turn to select directory  or track.\n"        // Show current option
                       "Press to confirm.");
-          } 
+          }
         }
         else { // item in list is a file
           if (dataMode != STOPPED) {
             dbgprint("STOP (singleClick & playMode == MEDIASERVER)");
             dataMode = STOPREQD;                                     // Request STOP, do not touch longClick flag
-          } 
+          }
           String protInfoLc = soapList[enc_nodeIndex].protInfo,
                  uriLc = soapList[enc_nodeIndex].uri;
           protInfoLc.toLowerCase();
@@ -4896,7 +4836,7 @@ void checkEncoderAndButtons()
             currentIndex = enc_nodeIndex;
             hostreq = true;                                          // Request this host
             mp3fileRepeatFlag = DIRECTORY;
-            mp3filePause = false;  
+            mp3filePause = false;
             muteFlag = 20;                                           // ca. 2 sec.
             //xQueueReset (dataQueue);
             //tftset(4, "");                                         // Clear text
@@ -4907,7 +4847,7 @@ void checkEncoderAndButtons()
           }
         }
       }
-#endif      
+#endif
     }
     else { // not in SELECT mode
       // we mute when in station mode and we pause when in sdcard mode
@@ -4925,13 +4865,13 @@ void checkEncoderAndButtons()
       }
     }
     // TEST
-    dbgprint("Total free memory of all regions=%d (minEver=%d), freeHeap=%d (minEver=%d), minStack=%d (in Bytes)", 
-             ESP.getFreeHeap(), ESP.getMinFreeHeap(), xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize(), uxTaskGetStackHighWaterMark(NULL)); 
+    dbgprint("Total free memory of all regions=%d (minEver=%d), freeHeap=%d (minEver=%d), minStack=%d (in Bytes)",
+             ESP.getFreeHeap(), ESP.getMinFreeHeap(), xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize(), uxTaskGetStackHighWaterMark(NULL));
     //
     return;
   }
   if (rotationcount == 0) return;
-  
+
   // Evaluating Encoder turns
   dbgprint("rotationcount: %d", rotationcount);
   // TEST
@@ -4945,11 +4885,11 @@ void checkEncoderAndButtons()
       if (rotationcount > 0) {
         if (playMode == SDCARD || playMode == MEDIASERVER)
           mp3fileJumpForward = true;
-      }  
-      else {  
+      }
+      else {
         if (playMode == SDCARD)
           mp3fileJumpBack = true;
-      }  
+      }
     }
     else if (playMode == STATION) {                        // we are in station mode
       encoderMode = SELECT;                                // Switch to SELECT mode
@@ -4969,7 +4909,7 @@ void checkEncoderAndButtons()
       dbgprint("Selected station is %d, %s", enc_preset, tmp.c_str());
       tftset(2, tmp);                                      // Set screen segment
     }
-#ifdef ENABLE_SOAP      
+#ifdef ENABLE_SOAP
     else { // playMode == MEDIASERVER
       // is handled above in SDCARD branch already
     }
@@ -5016,7 +4956,7 @@ void checkEncoderAndButtons()
         tftset(1, tmp);
       }
     }
-#ifdef ENABLE_SOAP      
+#ifdef ENABLE_SOAP
     else { // rotationcount & playMode == MEDIASERVER
       enc_nodeIndex += rotationcount;
       dbgprint("playMode: MEDIASERVER, enc_nodeIndex=%d", enc_nodeIndex);
@@ -5026,13 +4966,13 @@ void checkEncoderAndButtons()
           soapChain.back().startingIndex -= SOAP_DEFAULT_BROWSE_MAX_COUNT;
           if (soapChain.back().startingIndex < 0)
             soapChain.back().startingIndex = 0;
-          // browse request with new starting index  
-          dbgprint("Search again in media server container \"%s\" (child count: %d, startingIndex: %d)", 
+          // browse request with new starting index
+          dbgprint("Search again in media server container \"%s\" (child count: %d, startingIndex: %d)",
                    soapChain.back().name.c_str(), soapChain.back().size, soapChain.back().startingIndex);
           tftset(4, "Browse media server...");
-          delay(200);                   
+          delay(200);
           bool ret = browseMediaServer(soapChain.back().id.c_str(), &soapList, soapChain.back().startingIndex);
-          if (ret) { 
+          if (ret) {
             // browsing mediaserver successful
             enc_nodeIndex = soapList.size() - 1;                 // new index in browse list
             if (soapList.size() > 0) {
@@ -5045,7 +4985,7 @@ void checkEncoderAndButtons()
               else {
                 String protInfoLc = soapList[enc_nodeIndex].protInfo,
                        uriLc = soapList[enc_nodeIndex].uri;
-                protInfoLc.toLowerCase();       
+                protInfoLc.toLowerCase();
                 uriLc.toLowerCase();
                 if ((protInfoLc.indexOf("mp3") < 0 && !uriLc.endsWith(".mp3")) ||
                     soapList[enc_nodeIndex].fileType != fileTypeAudio)
@@ -5072,22 +5012,22 @@ void checkEncoderAndButtons()
           enc_nodeIndex = 0;                                     // no circling
           dbgprint("begin of list reached");
         }
-      }  
+      }
       else if (enc_nodeIndex >= soapList.size()) {
         // end of browse list reached
-        size_t sizeDir = soapChain.back().size;                  // elements in our current directory 
+        size_t sizeDir = soapChain.back().size;                  // elements in our current directory
         if (sizeDir > (soapList.size() + soapChain.back().startingIndex)) {
           // items left to be shown
           size_t more = sizeDir - soapList.size() - soapChain.back().startingIndex;
           dbgprint("end of this browse list but %d more items to come in this directory", more);
           size_t newStartingIndex = soapChain.back().startingIndex + soapList.size();
-          // browse request with new starting index  
-          dbgprint("Search again in media server container \"%s\" (child count: %d, startingIndex: %d)", 
+          // browse request with new starting index
+          dbgprint("Search again in media server container \"%s\" (child count: %d, startingIndex: %d)",
                      soapChain.back().name.c_str(), soapChain.back().size, newStartingIndex);
           tftset(4, "Browse media server...");
-          delay(200);                         
+          delay(200);
           bool ret = browseMediaServer(soapChain.back().id.c_str(), &soapList, newStartingIndex);
-          if (ret) { 
+          if (ret) {
             // browsing root of mediaserver was successful
             enc_nodeIndex = 0;                                   // new index in browse list
             soapChain.back().startingIndex = newStartingIndex;
@@ -5101,7 +5041,7 @@ void checkEncoderAndButtons()
               else {
                 String protInfoLc = soapList[enc_nodeIndex].protInfo,
                        uriLc = soapList[enc_nodeIndex].uri;
-                protInfoLc.toLowerCase();       
+                protInfoLc.toLowerCase();
                 uriLc.toLowerCase();
                 if ((protInfoLc.indexOf("mp3") < 0 && !uriLc.endsWith(".mp3")) ||
                     soapList[enc_nodeIndex].fileType != fileTypeAudio)
@@ -5137,26 +5077,26 @@ void checkEncoderAndButtons()
         if (tmp.length() > MAX_NAME_LENGTH) {
           tmp.remove(MAX_NAME_LENGTH - 3);
           tmp += "...";
-        }  
+        }
         tftset(2, tmp);
       }
       else {
         String protInfoLc = soapList[enc_nodeIndex].protInfo,
                 uriLc = soapList[enc_nodeIndex].uri;
-        protInfoLc.toLowerCase();       
+        protInfoLc.toLowerCase();
         uriLc.toLowerCase();
         if ((protInfoLc.indexOf("mp3") < 0 && !uriLc.endsWith(".mp3")) ||
             soapList[enc_nodeIndex].fileType != fileTypeAudio) {
           if (tmp.length() > MAX_NAME_LENGTH) {
             tmp.remove(MAX_NAME_LENGTH - 13);
             tmp += "...";
-          }  
+          }
           tmp += " [not mp3]";
         }
         tftset(1, tmp);
       }
     }
-#endif    
+#endif
   }
   rotationcount = 0;
 }
@@ -5188,17 +5128,17 @@ void mp3loop()
     else if (currentSource == STATION) {
       stopMp3client();                                  // Disconnect if still connected
     }
-#ifdef ENABLE_SOAP    
+#ifdef ENABLE_SOAP
     else { // MEDIASERVER
       soap.readStop();
       mp3fileLength = mp3fileBytesLeft = 0;
       dbgprint("mp3loop: media server data connection closed");
     }
-#endif    
+#endif
     chunked = false;                                    // Not longer chunked
     datacount = 0;                                      // Reset datacount
     outqp = outchunk.buf;                               // and pointer
-    //if (currentSource != SDCARD && currentSource != MEDIASERVER)    
+    //if (currentSource != SDCARD && currentSource != MEDIASERVER)
       queuefunc(QSTOPSONG);                             // Queue a request to stop the song
     metaint = 0;                                        // No metaint known now
     dataMode = STOPPED;                                 // yes, state becomes STOPPED
@@ -5300,7 +5240,7 @@ void mp3loop()
         res = mp3client.read(tmpbuff, maxchunk);        // Read a number of bytes from the stream
         _releaseSPI();                                  // release SPI bus
         if (res == 0 || res == -1)
-          dbgprint("res: %d", res); 
+          dbgprint("res: %d", res);
       }
       else {
         if (dataMode == PLAYLISTDATA) {                    // End of playlist
@@ -5311,7 +5251,7 @@ void mp3loop()
         }
       }
     }
-#ifdef ENABLE_SOAP    
+#ifdef ENABLE_SOAP
     else { // MEDIASERVER
       if (mp3fileJumpForward) {
         mp3fileJumpForward = false;
@@ -5329,7 +5269,7 @@ void mp3loop()
             // read error or EOF
             soap.readStop();
             break;
-          }  
+          }
           toRead -= ret;
           //mp3fileBytesLeft -= ret;                         // Number of bytes left
         }
@@ -5359,7 +5299,7 @@ void mp3loop()
         }
       }
     }
-#endif    
+#endif
     for (i = 0; i < res; i++) {
       handlebyte_ch(tmpbuff[i]);                           // Handle one byte
     }
@@ -5392,9 +5332,9 @@ void mp3loop()
       }
     }
   }
-#ifdef ENABLE_SOAP  
+#ifdef ENABLE_SOAP
   else if (currentSource == MEDIASERVER) {
-    if (dataMode & DATA && av == 0) {                      // playing and end of mp3 data? 
+    if (dataMode & DATA && av == 0) {                      // playing and end of mp3 data?
       dbgprint("mp3loop: STOP (end of file from media server)");
       soap.readStop();
       dataMode = STOPREQD;                                     // End of local mp3-file detected
@@ -5422,17 +5362,17 @@ void mp3loop()
         // stop playing after this file and show directory content
         String tmp;
         soapChain_t dir = soapChain.back();                    // retrieve last element in chain
-        dbgprint("Search in media server container \"%s\" (child count: %d, startingIndex: 0)", 
+        dbgprint("Search in media server container \"%s\" (child count: %d, startingIndex: 0)",
                  dir.name.c_str(), dir.size);
         tftset(4, "Browse media server...");
-        delay(200);    
+        delay(200);
         bool ret = browseMediaServer(dir.id.c_str(), &soapList);
         if (ret) {                                             // browsing mediaserver one level higher
           encoderMode = SELECT;
           if (soapList.size() > 0) {
             tftset(4, "Turn to select directory  or track.\n"  // Show current option
                       "Press to confirm.");
-            currentIndex = 0;                                  // first entry on that level 
+            currentIndex = 0;                                  // first entry on that level
             tmp = soapList[currentIndex].name;
             if (soapList[currentIndex].isDirectory) {
               tftset(2, tmp);
@@ -5440,7 +5380,7 @@ void mp3loop()
             else {
               String protInfoLc = soapList[currentIndex].protInfo,
                       uriLc = soapList[currentIndex].uri;
-              protInfoLc.toLowerCase();       
+              protInfoLc.toLowerCase();
               uriLc.toLowerCase();
               if ((protInfoLc.indexOf("mp3") < 0 && !uriLc.endsWith(".mp3")) ||
                   soapList[currentIndex].fileType != fileTypeAudio)
@@ -5463,7 +5403,7 @@ void mp3loop()
       }
     }
   }
-#endif  
+#endif
   if (ini_block.newpreset != currentPreset) {              // new station or next from playlist requested?
     dbgprint("mp3loop: ini_block.newpreset[%d] != currentPreset[%d]",
                ini_block.newpreset, currentPreset);
@@ -5507,7 +5447,7 @@ void mp3loop()
       currentSource = MEDIASERVER;
     else
       currentSource = STATION;
-    
+
     if (currentSource == SDCARD) {                         // play file from SD card?
       muteFlag = 15;
       playMode = SDCARD;
@@ -5542,7 +5482,7 @@ void mp3loop()
           dbgprint("mp3loop: we are requested to re-initialize the ethernet card");
           initEthernet(false);                             // no TFT output
         }
-#endif        
+#endif
         connectToHost();                                   // Switch to new host
       }
       else {
@@ -5552,7 +5492,7 @@ void mp3loop()
           ini_block.newpreset = 0;
       }
     }
-#ifdef ENABLE_SOAP    
+#ifdef ENABLE_SOAP
     else { // MEDIASERVER
       #define MAX_DLNA_RETRIES 3
       for (i = 0; i < MAX_DLNA_RETRIES; i++) {
@@ -5565,12 +5505,12 @@ void mp3loop()
         currentSource = NONE;
         host = "";
         tftset(4, "Error retrieving file.");
-        dbgprint("readStart(%s:%d/%s) returned error", 
+        dbgprint("readStart(%s:%d/%s) returned error",
                  hostObject.downloadIp.toString().c_str(), hostObject.downloadPort, hostObject.uri.c_str());
       }
       else {
         mp3fileBytesLeft = mp3fileLength;                  // file length as reported from media server
-        dbgprint("readStart(%s:%d/%s) successful", 
+        dbgprint("readStart(%s:%d/%s) successful",
                  hostObject.downloadIp.toString().c_str(), hostObject.downloadPort, hostObject.uri.c_str());
         if (handleID3(host)) {                             // check for ID3 tags
           dataMode = DATA;                                 // Start in DATA mode
@@ -5584,7 +5524,7 @@ void mp3loop()
           dataMode = STOPPED;
           currentSource = NONE;
           tftset(4, "Error reading file from media server.");
-          dbgprint("handleID3(\"%s\") returned error", host.c_str());          
+          dbgprint("handleID3(\"%s\") returned error", host.c_str());
           host = "";
         }
       }
@@ -5604,7 +5544,7 @@ void handleClientOnPort23()
   static char dbgTextBuf[MAXSIZE_TELNET_CMD];          //someplace to put received cmd
   static int  dbgCharsReceived = 0;
   static bool EOLseen = false;
-  
+
   if (!dbgConnectFlag)
   {
     _claimSPI("port231");                            // claim SPI bus
@@ -5643,13 +5583,13 @@ void handleClientOnPort23()
           charsWaiting--;
           if (c ==  0x0D)                            // end of line (Enter key)
             EOLseen = true;
-        } while (dbgCharsReceived <= MAXSIZE_TELNET_CMD && charsWaiting > 0);   
+        } while (dbgCharsReceived <= MAXSIZE_TELNET_CMD && charsWaiting > 0);
         if (EOLseen) {
           EOLseen = false;
           dbgCharsReceived = 0;
           switch (dbgTextBuf[0]) {
             case 0x0D: break;                         // ignore empty line
-            case 'q':  
+            case 'q':
               _claimSPI("port236");                   // claim SPI bus
               dbgclient.print("\r\nBye bye.\r\n");
               dbgclient.flush();
@@ -5666,14 +5606,14 @@ void handleClientOnPort23()
               dbgclient.print("Press 'q'+ENTER to quit.\r\n\r\n");
               //dbgclient.println("");
               _releaseSPI();                          // release SPI bus
-              break;            
+              break;
 #ifdef CHECK_LOOP_TIME
             case 't':                                 // CTRL-T resets loop timer
               maxLoopTime = 0;
               dbgprint("Loop timer resetted.");
               break;
 #endif
-            default: 
+            default:
               _claimSPI("port238");                  // claim SPI bus
               dbgclient.print("\r\nUnrecognized command.  ? for help.\r\n");
               _releaseSPI();                         // release SPI bus
@@ -5713,7 +5653,7 @@ void loop()
   //delay(1);                                             // resets task switcher watchdog, just in case it's needed
 #ifdef ENABLE_ESP32_HW_WDT
   esp_task_wdt_reset();                                 // avoid panic and subsequent ESP32 restart
-#endif   
+#endif
 #ifdef CHECK_LOOP_TIME
   uint32_t timing;                                      // for calculation of loop() round times
   timing = millis();
@@ -5724,9 +5664,9 @@ void loop()
     ESP.restart();                                      // reboot
   }
   scanserial();                                         // handle serial input
-#ifdef ENABLE_DIGITAL_INPUTS  
+#ifdef ENABLE_DIGITAL_INPUTS
   scandigital();                                        // scan digital inputs
-#endif  
+#endif
 #ifdef ENABLE_INFRARED
   scanIR();                                             // see if IR input
 #endif
@@ -5743,7 +5683,7 @@ void loop()
     dbgprint("loop(): command client available");
     handlehttp();
   }
-#endif  
+#endif
   //
   handleSaveReq();                                      // save settings if needed
   checkEncoderAndButtons();                             // check rotary encoder & button functions
@@ -5863,7 +5803,7 @@ void handlebyte_ch(uint8_t b)
     metaint = 0;                                       // no metaint found
     LFcount = 0;                                       // for detection end of header
     bitrate = 0;                                       // bitrate still unknown
-    dbgprint("Switch to HEADER"); 
+    dbgprint("Switch to HEADER");
     dataMode = HEADER;                                 // handle header
     totalCount = 0;                                    // reset totalCount
     metalinebfx = 0;                                   // no metadata yet
@@ -6426,7 +6366,7 @@ const char* analyzeCmd(const char* par, const char* val)
     // No action required
   }
   else if (argument.indexOf("preset") == 0) {        // Preset station?
-    mp3fileRepeatFlag = NOREPEAT;  
+    mp3fileRepeatFlag = NOREPEAT;
     playMode = STATION;
     ini_block.newpreset = ivalue;                    // Otherwise set station
     playlist_num = 0;                                // Absolute, reset playlist
@@ -6490,7 +6430,7 @@ const char* analyzeCmd(const char* par, const char* val)
       sprintf(reply, "Preset is now %d",                // Reply new preset
                      ini_block.newpreset);
     }
-#ifdef ENABLE_SOAP    
+#ifdef ENABLE_SOAP
     else if (currentSource == MEDIASERVER && playMode == MEDIASERVER) {
       const char* p;
       int16_t newIndex;
@@ -6498,7 +6438,7 @@ const char* analyzeCmd(const char* par, const char* val)
       if (mp3fileRepeatFlag == SONG ||
             ((mp3fileLength - mp3fileBytesLeft) > (mp3fileLength / 30))) {
         newIndex = currentIndex;                        // Select the same file again
-      }  
+      }
       else {
         newIndex = nextSoapFileIndex(currentIndex, -1); // Select the previous file on soap list
       }
@@ -6516,7 +6456,7 @@ const char* analyzeCmd(const char* par, const char* val)
         p = dbgprint("Soap list problem: can't find previous entry");
       }
       strcpy(reply, p);
-      utf8ascii(reply);  
+      utf8ascii(reply);
     }
 #endif
   }
@@ -6556,14 +6496,14 @@ const char* analyzeCmd(const char* par, const char* val)
       sprintf(reply, "Preset is now %d",                // Reply new preset
                 ini_block.newpreset);
     }
-#ifdef ENABLE_SOAP    
+#ifdef ENABLE_SOAP
     else if (currentSource == MEDIASERVER && playMode == MEDIASERVER) {
       const char* p;
       int16_t newIndex;
 
       if (mp3fileRepeatFlag == SONG) {
         newIndex = currentIndex;                        // Select the same file again
-      }  
+      }
       else {
         newIndex = nextSoapFileIndex(currentIndex, +1); // Select the next file on soap list
       }
@@ -6581,7 +6521,7 @@ const char* analyzeCmd(const char* par, const char* val)
         p = dbgprint("Soap list problem: Can't find next entry");
       }
       strcpy(reply, p);
-      utf8ascii(reply);  
+      utf8ascii(reply);
     }
 #endif
   }
@@ -6616,7 +6556,7 @@ const char* analyzeCmd(const char* par, const char* val)
     }
     else if (currentSource == STATION) {
       if (SD_okay && SD_mp3fileCount > 0) {
-        mp3fileRepeatFlag = NOREPEAT; 
+        mp3fileRepeatFlag = NOREPEAT;
         mp3filePause = 0;
         int fileIndex = nextSDfileIndex(0, 0);          // Select the first file on SD
         host = getSDfilename(fileIndex);
@@ -6670,12 +6610,12 @@ const char* analyzeCmd(const char* par, const char* val)
     hostreq = true;                                   // Force this station or file as new preset
     utf8ascii(reply);                                 // Remove possible strange characters in reply
   }
-#ifdef ENABLE_SOAP     
+#ifdef ENABLE_SOAP
   else if (argument == "soap") {                      // play audio file from media server
     if (value.length() == 0 || value.indexOf('/') < 0 || !value.endsWith(".mp3")) {
       const char* p = dbgprint("Error: parameter value invalid !");
       strcpy(reply, p);
-      utf8ascii(reply);  
+      utf8ascii(reply);
       return reply;
     }
     dbgprint("Mediaserver mode requested via HTTP (Play button)");
@@ -6699,7 +6639,7 @@ const char* analyzeCmd(const char* par, const char* val)
     }
     // single file requested with play button via HTTP
     soapList.clear();
-    soapObject_t tmpObject = { .isDirectory = false, .size = 0, .name = "single file requested per HTTP", 
+    soapObject_t tmpObject = { .isDirectory = false, .size = 0, .name = "single file requested per HTTP",
                                .uri = value, .downloadIp = ini_block.srv_ip, .downloadPort = ini_block.srv_port };
     soapList.push_back(tmpObject);
     // to make sure the return button lands in Root
@@ -6707,12 +6647,12 @@ const char* analyzeCmd(const char* par, const char* val)
     soapChain_t tmpId = { .id = "0", .name = "Root", .size = 0, .startingIndex = 0 };
     soapChain.push_back(tmpId);                        // first entry always represents root = "0"
     tmpId = { .id = "1", .name = "dummy", .size = 1, .startingIndex = 0 };
-    soapChain.push_back(tmpId); 
+    soapChain.push_back(tmpId);
 
     if (dataMode != STOPPED) {
       dbgprint("STOP (Mediaserver per HTTP request 2)");
       dataMode = STOPREQD;                             // Request STOP, do not touch longClick flag
-    } 
+    }
 
     host = "soap/" + soapList[0].uri;
     hostObject = soapList[0];
@@ -6721,12 +6661,12 @@ const char* analyzeCmd(const char* par, const char* val)
     currentIndex = 0;
     hostreq = true;                                    // Request this host
     mp3fileRepeatFlag = DIRECTORY;
-    mp3filePause = false;  
+    mp3filePause = false;
     muteFlag = 20;                                     // ca. 2 sec.
     //xQueueReset (dataQueue);
     //tftset(4, "");                                   // Clear text
   }
-#endif  
+#endif
   else if (argument == "status") {                    // Status request
     if (dataMode == STOPPED) {
       sprintf(reply, "Player stopped");               // Format reply
@@ -6786,17 +6726,17 @@ const char* analyzeCmd(const char* par, const char* val)
     }
     sprintf(reply, "Free memory %d, chunks in queue %d, stream %d, bitrate %d kbps, vol %d",
               ESP.getFreeHeap(), uxQueueMessagesWaiting (dataQueue), av, mbitrate, ini_block.reqvol);
-    dbgprint("Total free memory of all regions=%d (minEver=%d), freeHeap=%d (minEver=%d), minStack=%d (in Bytes)", 
-             ESP.getFreeHeap(), ESP.getMinFreeHeap(), xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize(), uxTaskGetStackHighWaterMark(NULL)); 
+    dbgprint("Total free memory of all regions=%d (minEver=%d), freeHeap=%d (minEver=%d), minStack=%d (in Bytes)",
+             ESP.getFreeHeap(), ESP.getMinFreeHeap(), xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize(), uxTaskGetStackHighWaterMark(NULL));
     dbgprint("Stack minimum mainTask was %d", uxTaskGetStackHighWaterMark (mainTask));
     dbgprint("Stack minimum playTask was %d", uxTaskGetStackHighWaterMark (xplayTask));
     dbgprint("Stack minimum spfTask  was %d", uxTaskGetStackHighWaterMark (xspfTask));
-#ifdef FRONT_PANEL_BUTTONS    															
+#ifdef FRONT_PANEL_BUTTONS
     dbgprint("Stack minimum extenderTask  was %d", uxTaskGetStackHighWaterMark (xextenderTask));
-#endif   					
+#endif
 #if defined VU_METER && defined LOAD_VS1053_PATCH
     dbgprint("Stack minimum vumeterTask  was %d", uxTaskGetStackHighWaterMark (xvumeterTask));
-#endif    
+#endif
     dbgprint("Volume setting is %d", ini_block.reqvol);
   }
   // Commands for bass/treble control
@@ -6859,7 +6799,7 @@ const char* analyzeCmd(const char* par, const char* val)
       //dbgprint("New media server macWOL=\"%s\"", ini_block.srv_macWOL.c_str());
     }
   }
-#endif  
+#endif
   else {
     sprintf(reply, "%s called with illegal parameter: %s",
             NAME, argument.c_str());
@@ -6902,7 +6842,7 @@ void displaySDstatus()
 
   if (currentSource == SDCARD) {
     repeatFlag = (mp3fileRepeatFlag != NOREPEAT && SD_okay) ? mp3fileRepeatFlag : NOREPEAT;
-  }  
+  }
   else if (currentSource == MEDIASERVER) {
     repeatFlag = mp3fileRepeatFlag;
   }
@@ -6919,7 +6859,7 @@ void displaySDstatus()
     //dbgprint("displayrandom(): fillRect: x=%d y=%d w=%d h=%d col=BLACK",
     //           pos, 0, 6, 8);
     dsp_fillRect(pos, 0, 6, 8, BLACK);                        // clear the space for new character
-    if (currentSource == SDCARD && 
+    if (currentSource == SDCARD &&
         sdmissingFlagOld != sdmissingFlag) {                  // any Difference?
       if (sdmissingFlag) {
         dsp_setTextColor(RED);                                // set the requested color
@@ -6966,7 +6906,7 @@ void displayMutePause()
       //dbgprint("displaymute(): fillRect: x=%d y=%d w=%d h=%d col=BLACK",
       //           pos, 0, 6, 8);
       dsp_fillRect(pos, 0, 6, 8, BLACK);          // Clear the space for new character
-      if (mp3filePause) { 
+      if (mp3filePause) {
         // Pause prevails over mute
         dsp_setTextColor(GREEN);                  // Set the requested color
         dsp_setCursor(pos, 0);                    // Prepare to show the info
@@ -7198,19 +7138,19 @@ bool getLocalTimeEth(struct tm *info)
     TimeChangeRule *tcr;                    // pointer to the time change rule, used to get the TZ abbrev
     time_t t = myTimezone.toLocal(epoch, &tcr);
     info->tm_year = year(t);
-    info->tm_hour = hour(t); 
+    info->tm_hour = hour(t);
     info->tm_min = minute(t);
     dbgprint("Seconds since 01.01.1970: %lu, actual time zone: \"%s\"", epoch, tcr->abbrev);
     dbgprint("Local Date/Time with time zone %s applied -> %d.%d.%d %02d:%02d",
              tcr->abbrev, day(t), month(t), info->tm_year, info->tm_hour, info->tm_min);
 #else
-    static bool initialized = false;    
+    static bool initialized = false;
     if (!initialized) {                     // executed only once
       initialized = true;
       setenv("TZ", ini_block.clk_tzstring.c_str(), 1);
       tzset();
       dbgprint("setenv(\"TZ\",\"%s\",1) + tzset()", ini_block.clk_tzstring.c_str());
-    }    
+    }
     dbgprint("Seconds since 01.01.1970: %lu, actual Posix TZ string: \"%s\"", epoch, getenv("TZ"));
     // broken in Arduino ESP32 core 3.3.11 !
     localtime_r((const time_t *)&epoch, info);
@@ -7329,7 +7269,7 @@ void playTask(void * parameter)
           break;
       }
     }
-    // TEST 
+    // TEST
     //esp_task_wdt_reset();                                      // Protect against idle cpu
   }
   //vTaskDelete(NULL);                                           // Will never arrive here
@@ -7425,15 +7365,15 @@ void handle_spec()
           handle_tft_txt();                                  // immidiate TFT refresh necessary
           handle_tft_txt();                                  // (2 sections)
           // TEST
-          dbgprint("Total free memory of all regions=%d (minEver=%d), freeHeap=%d (minEver=%d), minStack=%d (in Bytes)", 
-                   ESP.getFreeHeap(), ESP.getMinFreeHeap(), xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize(), uxTaskGetStackHighWaterMark(NULL)); 
-          //            
+          dbgprint("Total free memory of all regions=%d (minEver=%d), freeHeap=%d (minEver=%d), minStack=%d (in Bytes)",
+                   ESP.getFreeHeap(), ESP.getMinFreeHeap(), xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize(), uxTaskGetStackHighWaterMark(NULL));
+          //
           SD_mp3fileCount = listsdtracks("/", 0, true);      // build SD file index
           p = dbgprint("%d mp3 tracks on SD", SD_mp3fileCount);
           // TEST
-          dbgprint("Total free memory of all regions=%d (minEver=%d), freeHeap=%d (minEver=%d), minStack=%d (in Bytes)", 
-                   ESP.getFreeHeap(), ESP.getMinFreeHeap(), xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize(), uxTaskGetStackHighWaterMark(NULL)); 
-          //            
+          dbgprint("Total free memory of all regions=%d (minEver=%d), freeHeap=%d (minEver=%d), minStack=%d (in Bytes)",
+                   ESP.getFreeHeap(), ESP.getMinFreeHeap(), xPortGetFreeHeapSize(), xPortGetMinimumEverFreeHeapSize(), uxTaskGetStackHighWaterMark(NULL));
+          //
           tftset(4, p);                                      // show number of tracks on TFT
           if (!SD_mp3fileCount)
             tftset(1, "SD Card is empty !");
@@ -7463,7 +7403,7 @@ void spfTask (void *parameter)
 //**************************************************************************************************
 //                                   S H O W P R E S E T                                           *
 //**************************************************************************************************
-void showPreset(int8_t preset) 
+void showPreset(int8_t preset)
 {
   String tmp = readhostfrompref(preset);                   // get host spec and possible comment
   if (tmp != "") {                                         // valid preset ?
@@ -7512,7 +7452,7 @@ uint8_t I2CwireRead(uint8_t address, uint8_t *data)
   }
   else {
     *data = 0xFF;
-    return 1;  //  error   
+    return 1;  //  error
   }
 }
 
@@ -7541,7 +7481,7 @@ bool handlePCF8574()
     initialized = true;
   }
 
-  // Checking buttons on first row 
+  // Checking buttons on first row
   if (I2CwireWrite(PCF8574_1_ADDR, 0xEF)) {                // pull first row LOW (P4 connected to CP103/5)
     dbgprint("Error I2CwireWrite(PCF8574-1)");
     return false;
@@ -7585,7 +7525,7 @@ bool handlePCF8574()
   I2CwireWrite(PCF8574_1_ADDR, 0xFF);                       // set row to HIGH again
   if (ret) return true;                                     // if key was pressed we don't inquire any further
 
-  // Checking buttons on fifth row 
+  // Checking buttons on fifth row
   if (I2CwireWrite(PCF8574_1_ADDR, 0xDF)) {                 // pull fifth row LOW (P5 connected to CP103/6)
     dbgprint("Error I2CwireWrite(PCF8574-1)");
     return false;
@@ -7616,7 +7556,7 @@ bool handlePCF8574()
   I2CwireWrite(PCF8574_1_ADDR, 0xFF);                       // set row to HIGH again
   if (ret) return true;
 
-  // Checking buttons on sixth row 
+  // Checking buttons on sixth row
   if (I2CwireWrite(PCF8574_1_ADDR, 0xBF)) {                 // pull sixth row LOW (P6 connected to CP103/7)
     dbgprint("Error I2CwireWrite(PCF8574-1)");
     return false;
@@ -7657,7 +7597,7 @@ bool handlePCF8574()
   I2CwireWrite(PCF8574_1_ADDR, 0xFF);                       // set row to HIGH again
   if (ret) return true;
 
-  // Checking buttons on seventh row 
+  // Checking buttons on seventh row
   if (I2CwireWrite(PCF8574_1_ADDR, 0x7F)) {                 // pull seventh row LOW (P7 connected to CP103/8)
     dbgprint("Error I2CwireWrite(PCF8574-1)");
     return false;
@@ -7707,7 +7647,7 @@ bool handlePCF8574()
     else if (mp3fileRepeatFlag == RANDOM)
       ledMask = 0x7F;
   }
-  // Checking buttons on forth row 
+  // Checking buttons on forth row
   if (I2CwireWrite(PCF8574_2_ADDR, ledMask & 0xFE)) {       // pull forth row LOW (P0 connected to CP102/9)
     dbgprint("Error I2CwireWrite(PCF8574-2)");
     return false;
@@ -7720,7 +7660,7 @@ bool handlePCF8574()
                                                             // (row 5 has only 2 buttons assigned)
 #ifdef ENABLE_SOAP
     delay(100);                                             // give some time to press AM+FM at once
-    if (I2CwireRead(PCF8574_1_ADDR, &stat)) {               // read again 
+    if (I2CwireRead(PCF8574_1_ADDR, &stat)) {               // read again
       dbgprint("Error I2CwireRead()");
       return false;
     }
@@ -7728,8 +7668,8 @@ bool handlePCF8574()
       dbgprint("FM+AM Buttons pressed at once");            // button name according to Technics manual
       buttonMediaserver = true;
     }
-    else 
-#endif    
+    else
+#endif
     if (!(stat & 0x08) && (oldStatus[4] & 0x08)) {          // button just pressed ?
       dbgprint("FM Button pressed");                        // button name according to Technics manual
       buttonSD = true;
@@ -7751,7 +7691,7 @@ bool handlePCF8574()
   I2CwireWrite(PCF8574_2_ADDR, ledMask & 0xFF);             // set row to HIGH again
   if (ret) return true;
 
-  // Checking buttons on third row 
+  // Checking buttons on third row
   if (I2CwireWrite(PCF8574_2_ADDR, ledMask & 0xFD)) {       // pull third row LOW (P1 connected to CP102/8)
     dbgprint("Error I2CwireWrite(PCF8574-2)");
     return false;
@@ -7803,7 +7743,7 @@ void extenderTask (void * parameter)
   }
   //vTaskDelete(NULL);                                 // will never arrive here
 }
-#endif			
+#endif
 
 #if defined VU_METER && defined LOAD_VS1053_PATCH
 //**************************************************************************************************
@@ -7816,7 +7756,7 @@ void extenderTask (void * parameter)
 //**************************************************************************************************
 #define VU_MAX_DIFF    21     // only 21 highest dB are shown
 #define VU_START_VALUE 88
-uint8_t  maxEncountered = VU_START_VALUE, 
+uint8_t  maxEncountered = VU_START_VALUE,
          threshold = VU_START_VALUE - VU_MAX_DIFF;
 
 void vumeterTask(void *parameter)
@@ -7826,16 +7766,16 @@ void vumeterTask(void *parameter)
   uint8_t  ampL, ampLOld = 0, ampR, ampROld = 0;
   uint8_t  posX = dsp_getwidth() + VUMETERPOS;         // X-position of VU-meter
   bool     update = false;
- 
+
   while (true) {
-    if (tft) { 
+    if (tft) {
       if ((dataMode == INIT || dataMode == STOPREQD || dataMode == STOPPED) && update) {
         dsp_fillRect(posX, 0, 7, 11, BLACK);           // clear the space for VU-Meter
         update = false;
         maxEncountered = VU_START_VALUE;
         threshold = VU_START_VALUE - VU_MAX_DIFF;
       }
-      else if (dataMode == DATA && 
+      else if (dataMode == DATA &&
                !((currentSource == SDCARD || currentSource == MEDIASERVER) &&
                mp3fileBytesLeft == 0)) {
         claimSPI("vumeter");                           // claim SPI bus
@@ -7850,13 +7790,13 @@ void vumeterTask(void *parameter)
             threshold = maxEncountered - VU_MAX_DIFF;
           }
 
-          // normalize to NULL 
+          // normalize to NULL
           vuLevelL = (vuLevelL <= threshold) ? 0 : vuLevelL - threshold;
           vuLevelR = (vuLevelR <= threshold) ? 0 : vuLevelR - threshold;
- 
-          if (currentSource == STATION) { 
+
+          if (currentSource == STATION) {
             // Radio (higher base levels, lower dynamic)
-            if (vuLevelL == 0)                   ampL = 0;    // left channel  
+            if (vuLevelL == 0)                   ampL = 0;    // left channel
             else if (vuLevelL < VU_MAX_DIFF - 9) ampL = 1;
             else if (vuLevelL < VU_MAX_DIFF - 8) ampL = 2;
             else if (vuLevelL < VU_MAX_DIFF - 7) ampL = 3;
@@ -7876,8 +7816,8 @@ void vumeterTask(void *parameter)
             else                                 ampR = 11;
           }
           else {
-            // SD card or media server (lower base levels, higher dynamic)                            
-            if (vuLevelL == 0)                    ampL = 0;   // left channel    
+            // SD card or media server (lower base levels, higher dynamic)
+            if (vuLevelL == 0)                    ampL = 0;   // left channel
             else if (vuLevelL < VU_MAX_DIFF - 15) ampL = 1;
             else if (vuLevelL < VU_MAX_DIFF - 11) ampL = 2;
             else if (vuLevelL < VU_MAX_DIFF - 9)  ampL = 3;
@@ -7901,15 +7841,15 @@ void vumeterTask(void *parameter)
             if (ampL > 0) {
               dsp_fillRect(posX, 11 - ampL, 3, ampL, YELLOW);
               update = true;
-            }  
-          }  
+            }
+          }
           if (ampR != ampROld) {
             if (ampR < ampROld) dsp_fillRect(posX + 4, 0, 3, 11, BLACK); // clear the space for right meter
             if (ampR > 0) {
               dsp_fillRect(posX + 4, 11 - ampR, 3, ampR, YELLOW);
               update = true;
             }
-          }  
+          }
           ampLOld = ampL;
           ampROld = ampR;
         }
